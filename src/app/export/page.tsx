@@ -6,10 +6,65 @@ import { useCVStore } from "@/lib/store";
 import { computeLayout } from "@/lib/layoutEngine";
 import { analyzeATS } from "@/lib/atsScorer";
 import { analyzeQuality } from "@/lib/cvQuality";
-import { CVDocument } from "@/components/pdf/CVDocument";
-import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import { ExportSafetyCheck } from "@/components/builder/ExportSafetyCheck";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import type { CVData, CVTemplate, CVTheme, LayoutConfig, FontChoice } from "@/types";
+
+interface PdfDocProps {
+  data: CVData;
+  template: CVTemplate;
+  theme: CVTheme;
+  layout: LayoutConfig;
+  isPremium: boolean;
+  fontChoice: FontChoice;
+}
+
+function PdfPreview({ data, template, theme, layout, isPremium, fontChoice }: PdfDocProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [Viewer, setViewer] = useState<React.ComponentType<any> | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [Doc, setDoc] = useState<React.ComponentType<any> | null>(null);
+  useEffect(() => {
+    Promise.all([
+      import("@react-pdf/renderer").then((m) => setViewer(() => m.PDFViewer)),
+      import("@/components/pdf/CVDocument").then((m) => setDoc(() => m.CVDocument)),
+    ]);
+  }, []);
+  if (!Viewer || !Doc) return <div className="w-full h-full bg-gray-50 animate-pulse rounded-lg flex items-center justify-center"><div className="w-8 h-8 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" /></div>;
+  return (
+    <Viewer width="100%" height="100%" showToolbar={false}>
+      <Doc data={data} template={template} theme={theme} layout={layout} isPremium={isPremium} fontChoice={fontChoice} />
+    </Viewer>
+  );
+}
+
+function DownloadButton({ data, template, theme, layout, isPremium, fontChoice, fileName }: PdfDocProps & { fileName: string }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [LinkComp, setLinkComp] = useState<React.ComponentType<any> | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [Doc, setDoc] = useState<React.ComponentType<any> | null>(null);
+  useEffect(() => {
+    Promise.all([
+      import("@react-pdf/renderer").then((m) => setLinkComp(() => m.PDFDownloadLink)),
+      import("@/components/pdf/CVDocument").then((m) => setDoc(() => m.CVDocument)),
+    ]);
+  }, []);
+  if (!LinkComp || !Doc) return <div className="flex-1 px-5 sm:px-6 py-3 sm:py-3.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl font-bold text-center text-sm flex items-center justify-center gap-2 min-h-[44px] opacity-50">Loading PDF...</div>;
+  return (
+    <LinkComp
+      document={<Doc data={data} template={template} theme={theme} layout={layout} isPremium={isPremium} fontChoice={fontChoice} />}
+      fileName={fileName}
+      className="group flex-1 px-5 sm:px-6 py-3 sm:py-3.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl font-bold text-center hover:from-gray-800 hover:to-gray-600 transition-all shadow-lg hover:shadow-xl text-sm flex items-center justify-center gap-2 min-h-[44px]"
+    >
+      {({ loading }: { loading: boolean }) => (
+        <>
+          {loading ? "Generating PDF..." : "Download PDF"}
+          {!loading && <svg className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>}
+        </>
+      )}
+    </LinkComp>
+  );
+}
 
 export default function ExportPage() {
   const { data, template, theme, layoutOverride, manualLayout, isPremium, setIsPremium, hydrateFromStorage, resetAll, fontChoice } = useCVStore();
@@ -42,6 +97,12 @@ export default function ExportPage() {
   const atsResult = useMemo(() => analyzeATS(data, template), [data, template]);
   const qualityResult = useMemo(() => analyzeQuality(data), [data]);
 
+  const generateFileName = () => {
+    const name = data.personal.fullName.replace(/\s+/g, "_") || "CV";
+    const role = template.name.replace(/\s+/g, "_");
+    return `${name}_${role}.pdf`;
+  };
+
   if (!hydrated) {
     return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100"><div className="w-10 h-10 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" /></div>;
   }
@@ -57,12 +118,6 @@ export default function ExportPage() {
   ];
 
   const passedChecks = checks.filter((c) => c.pass).length;
-
-  const generateFileName = () => {
-    const name = data.personal.fullName.replace(/\s+/g, "_") || "CV";
-    const role = template.name.replace(/\s+/g, "_");
-    return `${name}_${role}.pdf`;
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-x-hidden animate-fade-in">
@@ -97,7 +152,6 @@ export default function ExportPage() {
         {!hasContent ? (
           <div className="text-center py-20 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/80 relative overflow-hidden shadow-sm">
             <div className="absolute inset-0 bg-gradient-to-br from-gray-50/80 via-transparent to-gray-100/30" />
-            <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
             <div className="relative">
               <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mx-auto mb-5 shadow-lg">
                 <span className="text-gray-400 text-2xl font-bold">CV</span>
@@ -113,9 +167,7 @@ export default function ExportPage() {
           <div className="grid lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8">
               <div className="rounded-2xl overflow-hidden border border-gray-200/80 shadow-lg bg-white" style={{ height: "min(500px, 60vh)" }}>
-                <PDFViewer width="100%" height="100%" showToolbar={false}>
-                  <CVDocument data={data} template={template} theme={theme} layout={finalLayout} isPremium={isPremium} fontChoice={fontChoice} />
-                </PDFViewer>
+                <PdfPreview data={data} template={template} theme={theme} layout={finalLayout} isPremium={isPremium} fontChoice={fontChoice} />
               </div>
 
               <div className="mt-5">
@@ -123,18 +175,7 @@ export default function ExportPage() {
               </div>
 
               <div className="mt-5 flex flex-col sm:flex-row gap-3">
-                <PDFDownloadLink
-                  document={<CVDocument data={data} template={template} theme={theme} layout={finalLayout} isPremium={isPremium} fontChoice={fontChoice} />}
-                  fileName={generateFileName()}
-                  className="group flex-1 px-5 sm:px-6 py-3 sm:py-3.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl font-bold text-center hover:from-gray-800 hover:to-gray-600 transition-all shadow-lg hover:shadow-xl text-sm flex items-center justify-center gap-2 min-h-[44px]"
-                >
-                  {({ loading }) => (
-                    <>
-                      {loading ? "Generating PDF..." : "Download PDF"}
-                      {!loading && <svg className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>}
-                    </>
-                  )}
-                </PDFDownloadLink>
+                <DownloadButton data={data} template={template} theme={theme} layout={finalLayout} isPremium={isPremium} fontChoice={fontChoice} fileName={generateFileName()} />
 
                 <button
                   onClick={() => setShowResetModal(true)}
@@ -212,7 +253,7 @@ export default function ExportPage() {
               {!isPremium && (
                 <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 border border-gray-200/80 rounded-2xl p-4 sm:p-5 text-xs text-gray-600 relative overflow-hidden shadow-sm">
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-gray-100 to-transparent rounded-bl-full" />
-                  <p className="relative"><strong className="text-gray-900">Free tier:</strong> All templates, 7 colors, PDF with watermark. Premium removes watermark + unlocks 3 extra colors.</p>
+                  <p className="relative"><strong className="text-gray-900">Free tier:</strong> All templates, 2 fonts, PDF export. Premium removes watermark + unlocks more.</p>
                 </div>
               )}
 
