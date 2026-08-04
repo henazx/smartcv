@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --eth-green: #009A44;
+  --eth-yellow: #FCDD09;
+  --eth-red: #DA121A;
+  --eth-blue: #0F47AF;
+  --background: #FAFAF5;
+  --foreground: #1a1a1a;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Page transition */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.35s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+@layer components {
+  .eth-gradient {
+    background: linear-gradient(135deg, var(--eth-green) 0%, var(--eth-yellow) 50%, var(--eth-red) 100%);
+  }
+  .eth-gradient-subtle {
+    background: linear-gradient(135deg, #e8f5e9 0%, #fffde7 50%, #ffebee 100%);
+  }
+  .eth-border {
+    border-image: linear-gradient(135deg, var(--eth-green), var(--eth-yellow), var(--eth-red)) 1;
+  }
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
