@@ -519,7 +519,7 @@ export default function Home() {
               <span className="bg-gradient-to-r from-gray-900 via-gray-600 to-gray-400 bg-clip-text text-transparent">the beginning</span>
             </h1>
             <p className="text-base md:text-lg text-gray-500 max-w-xl mx-auto mb-8 leading-relaxed">
-              SmartCV turns your experience into a complete job application tailored to every opportunity. One profile,无限 applications.
+              SmartCV turns your experience into a complete job application tailored to every opportunity. One profile, unlimited applications.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/career-twin" className="px-7 py-3.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl font-bold hover:from-gray-800 hover:to-gray-600 transition-all shadow-lg text-sm">
