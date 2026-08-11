@@ -4,14 +4,30 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://smartcv.app"),
   title: {
-    default: "SmartCV - Your Career Twin",
+    default: "Free CV Generator Ethiopia | SmartCV - CV Maker & Builder",
     template: "%s | SmartCV",
   },
   description:
-    "SmartCV turns your experience into a complete job application tailored to every opportunity. Build your Career Twin, match jobs, generate tailored CVs, and prepare for interviews.",
-  keywords: ["career twin", "CV builder", "job match", "Ethiopian resume", "tailored CV", "interview prep", "ATS optimization", "cover letter", "job application", "resume builder"],
-  authors: [{ name: "SmartCV" }],
-  creator: "SmartCV",
+    "Create a professional, ATS-friendly CV in minutes. Free CV generator for Ethiopian job seekers with 12+ templates, job matching, cover letters, and interview prep. Build your career twin today.",
+  keywords: [
+    "CV generator Ethiopia",
+    "Ethiopian CV template",
+    "ATS CV Ethiopia",
+    "free CV maker",
+    "CV builder",
+    "resume builder Ethiopia",
+    "professional CV",
+    "cover letter generator",
+    "job application Ethiopia",
+    "fresh graduate CV",
+    "IT CV template",
+    "career twin",
+    "job match",
+    "interview prep",
+    "Ethiopian job seekers",
+  ],
+  authors: [{ name: "Henok Neknikie" }],
+  creator: "Henok Neknikie",
   publisher: "SmartCV",
   formatDetection: {
     email: false,
@@ -19,8 +35,9 @@ export const metadata: Metadata = {
     telephone: false,
   },
   openGraph: {
-    title: "SmartCV - Your Career Twin",
-    description: "Your career, intelligently applied. Build your Career Twin, match jobs, and generate tailored applications.",
+    title: "Free CV Generator Ethiopia | SmartCV",
+    description:
+      "Create a professional, ATS-friendly CV in minutes. Free CV generator for Ethiopian job seekers with 12+ templates, job matching, and cover letters.",
     url: "https://smartcv.app",
     siteName: "SmartCV",
     locale: "en_US",
@@ -30,14 +47,15 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "SmartCV - Your Career Twin",
+        alt: "SmartCV - Free CV Generator for Ethiopian Job Seekers",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SmartCV - Your Career Twin",
-    description: "Your career, intelligently applied. Build your Career Twin, match jobs, and generate tailored applications.",
+    title: "Free CV Generator Ethiopia | SmartCV",
+    description:
+      "Create a professional, ATS-friendly CV in minutes. Free for Ethiopian job seekers.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -51,7 +69,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {},
+  alternates: {
+    canonical: "https://smartcv.app",
+  },
 };
 
 export default function RootLayout({
@@ -59,11 +79,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const jsonLd = {
+  const webAppSchema = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: "SmartCV",
-    description: "Build your Career Twin, match jobs, and generate tailored applications.",
+    description:
+      "Free CV generator for Ethiopian job seekers. Create ATS-friendly CVs, match jobs, and prepare for interviews.",
     url: "https://smartcv.app",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
@@ -71,6 +92,31 @@ export default function RootLayout({
       "@type": "Offer",
       price: "0",
       priceCurrency: "ETB",
+    },
+  };
+
+  const orgSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "SmartCV",
+    url: "https://smartcv.app",
+    founder: {
+      "@type": "Person",
+      name: "Henok Neknikie",
+    },
+    description:
+      "SmartCV helps Ethiopian job seekers create professional CVs, match jobs, and prepare for interviews.",
+  };
+
+  const siteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "SmartCV",
+    url: "https://smartcv.app",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: "https://smartcv.app/career-twin",
+      "query-input": "required name=target",
     },
   };
 
@@ -82,7 +128,9 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([webAppSchema, orgSchema, siteSchema]),
+          }}
         />
       </head>
       <body className="antialiased min-h-screen bg-[#FAFAF5]">

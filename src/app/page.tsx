@@ -514,21 +514,21 @@ export default function Home() {
         <div className="relative max-w-6xl mx-auto px-4 pt-16 pb-12 md:pt-24 md:pb-16">
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100/80 text-gray-600 rounded-full text-xs font-medium mb-5 backdrop-blur-sm">
-              Your career, intelligently applied
+              Free for Ethiopian job seekers
             </div>
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-5 leading-tight">
-              Your CV is only<br />
-              <span className="bg-gradient-to-r from-gray-900 via-gray-600 to-gray-400 bg-clip-text text-transparent">the beginning</span>
+              Free CV Generator<br />
+              <span className="bg-gradient-to-r from-gray-900 via-gray-600 to-gray-400 bg-clip-text text-transparent">for Ethiopian Job Seekers</span>
             </h1>
             <p className="text-base md:text-lg text-gray-500 max-w-xl mx-auto mb-8 leading-relaxed">
-              SmartCV turns your experience into a complete job application tailored to every opportunity. One profile, unlimited applications.
+              Create a professional, ATS-friendly CV in minutes. 12+ templates, job matching, cover letters, and interview prep. Your career, intelligently applied.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/career-twin" className="px-7 py-3.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl font-bold hover:from-gray-800 hover:to-gray-600 transition-all shadow-lg text-sm">
                 Build My Career Twin
               </Link>
-              <Link href="/career-twin" className="px-7 py-3.5 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all text-sm">
-                Try Job Match
+              <Link href="/cv-generator-ethiopia" className="px-7 py-3.5 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all text-sm">
+                Learn How It Works
               </Link>
             </div>
           </div>
@@ -679,6 +679,30 @@ export default function Home() {
         </div>
       </section>
 
+      {/* SEO Content Section */}
+      <section className="py-16 bg-white border-t border-gray-100">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-8 text-center">How to Create a Professional CV in Ethiopia</h2>
+          <div className="grid md:grid-cols-3 gap-8 text-sm text-gray-600 leading-relaxed">
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">ATS-Friendly CV Format</h3>
+              <p className="mb-3">Ethiopian employers increasingly use Applicant Tracking Systems (ATS) to screen CVs. SmartCV generates ATS-optimized CVs that pass automated screening, ensuring your application reaches the hiring manager.</p>
+              <Link href="/ats-cv-ethiopia" className="text-gray-900 font-medium hover:underline">Learn about ATS CVs &rarr;</Link>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">CV Templates for Every Industry</h3>
+              <p className="mb-3">Whether you are in IT, banking, healthcare, or engineering, SmartCV offers 12+ professional templates designed for the Ethiopian job market. Choose a template that matches your industry and experience level.</p>
+              <Link href="/ethiopian-cv-template" className="text-gray-900 font-medium hover:underline">Browse CV templates &rarr;</Link>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">Fresh Graduate? Start Here</h3>
+              <p className="mb-3">Just graduated from a Ethiopian university? SmartCV helps you highlight your education, projects, and transferable skills even without work experience. Build a CV that stands out from day one.</p>
+              <Link href="/fresh-graduate-cv" className="text-gray-900 font-medium hover:underline">Fresh graduate CV guide &rarr;</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-gray-100 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -702,18 +726,23 @@ export default function Home() {
               Developed by Henok Neknikie
             </span>
           )}
-          <div className="flex items-center gap-6 text-xs text-gray-400">
+          <div className="flex items-center gap-6 text-xs text-gray-400 flex-wrap justify-center">
             <Link href="/career-twin" className="hover:text-gray-600 transition-colors">Career Twin</Link>
             <Link href="/job-match" className="hover:text-gray-600 transition-colors">Job Match</Link>
             <Link href="/cover-letter" className="hover:text-gray-600 transition-colors">Cover Letter</Link>
             <Link href="/applications" className="hover:text-gray-600 transition-colors">Applications</Link>
             <Link href="/interview" className="hover:text-gray-600 transition-colors">Interview</Link>
             <Link href="/readiness" className="hover:text-gray-600 transition-colors">Readiness</Link>
-            <Link href="/career-twin" className="hover:text-gray-600 transition-colors">Career Twin</Link>
             <Link href="/premium" className="hover:text-gray-600 transition-colors">Premium</Link>
-            <span>Made in Ethiopia</span>
           </div>
-          <p className="text-xs text-gray-300">&copy; 2026 SmartCV</p>
+          <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap justify-center">
+            <Link href="/cv-generator-ethiopia" className="hover:text-gray-600 transition-colors">CV Generator Ethiopia</Link>
+            <Link href="/ethiopian-cv-template" className="hover:text-gray-600 transition-colors">Ethiopian CV Templates</Link>
+            <Link href="/ats-cv-ethiopia" className="hover:text-gray-600 transition-colors">ATS CV Ethiopia</Link>
+            <Link href="/fresh-graduate-cv" className="hover:text-gray-600 transition-colors">Fresh Graduate CV</Link>
+            <Link href="/cv-tips" className="hover:text-gray-600 transition-colors">CV Tips</Link>
+          </div>
+          <p className="text-xs text-gray-300">&copy; 2026 SmartCV. Made in Ethiopia.</p>
         </div>
       </footer>
     </div>
