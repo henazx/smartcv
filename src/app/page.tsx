@@ -494,6 +494,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <Link href="/career-twin" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all hidden sm:inline-flex">Career Twin</Link>
             <Link href="/job-match" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all hidden sm:inline-flex">Job Match</Link>
+            <Link href="/cover-letter" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all hidden sm:inline-flex">Cover Letter</Link>
             <Link href="/premium" className="px-3 py-1.5 text-xs font-semibold text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-all">Premium</Link>
             <Link href="/career-twin" className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-sm">Build My Career Twin</Link>
           </div>
@@ -683,6 +684,7 @@ export default function Home() {
           <div className="flex items-center gap-6 text-xs text-gray-400">
             <Link href="/career-twin" className="hover:text-gray-600 transition-colors">Career Twin</Link>
             <Link href="/job-match" className="hover:text-gray-600 transition-colors">Job Match</Link>
+            <Link href="/cover-letter" className="hover:text-gray-600 transition-colors">Cover Letter</Link>
             <Link href="/build" className="hover:text-gray-600 transition-colors">Builder</Link>
             <Link href="/premium" className="hover:text-gray-600 transition-colors">Premium</Link>
             <span>Made in Ethiopia</span>

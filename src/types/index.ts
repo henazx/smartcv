@@ -507,6 +507,21 @@ export interface CVVersion {
   updatedAt: string;
 }
 
+export interface CoverLetterParagraph {
+  id: string;
+  type: "opening" | "body" | "closing";
+  content: string;
+}
+
+export interface CoverLetter {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  jobTitle: string;
+  companyName: string;
+  paragraphs: CoverLetterParagraph[];
+}
+
 export interface CVState {
   data: CVData;
   template: CVTemplate;
@@ -529,4 +544,5 @@ export interface CVState {
   history: CVData[];
   historyIndex: number;
   careerProfile: CareerProfile;
+  coverLetter: CoverLetter | null;
 }

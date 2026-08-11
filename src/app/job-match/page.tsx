@@ -192,6 +192,7 @@ export default function JobMatchPage() {
           </Link>
           <div className="flex items-center gap-2">
             <Link href="/career-twin" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all hidden sm:inline-flex">Career Twin</Link>
+            <Link href="/cover-letter" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all hidden sm:inline-flex">Cover Letter</Link>
             <Link href="/build" className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-sm">Create CV</Link>
           </div>
         </div>
@@ -452,8 +453,14 @@ export default function JobMatchPage() {
                   >
                     Create Tailored CV
                   </button>
+                  <button
+                    onClick={() => router.push("/cover-letter")}
+                    className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all text-center"
+                  >
+                    Cover Letter
+                  </button>
                   <Link href="/career-twin" className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all text-center">
-                    Update Career Twin
+                    Update Twin
                   </Link>
                 </div>
               </div>

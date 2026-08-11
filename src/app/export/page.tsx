@@ -66,6 +66,42 @@ function DownloadButton({ data, template, theme, layout, isPremium, fontChoice, 
   );
 }
 
+function CoverLetterDownloadButton() {
+  const { coverLetter, careerProfile, data } = useCVStore();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [LinkComp, setLinkComp] = useState<React.ComponentType<any> | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [Doc, setDoc] = useState<React.ComponentType<any> | null>(null);
+  useEffect(() => {
+    if (coverLetter) {
+      Promise.all([
+        import("@react-pdf/renderer").then((m) => setLinkComp(() => m.PDFDownloadLink)),
+        import("@/components/pdf/CoverLetterDocument").then((m) => setDoc(() => m.CoverLetterDocument)),
+      ]);
+    }
+  }, [coverLetter]);
+  if (!coverLetter) return null;
+  if (!LinkComp || !Doc) return <div className="flex-1 px-5 sm:px-6 py-3 sm:py-3.5 border border-gray-200 text-gray-700 rounded-xl font-bold text-center text-sm flex items-center justify-center gap-2 min-h-[44px] opacity-50">Loading...</div>;
+  const fullName = careerProfile.personal.fullName || data.personal.fullName || "Your Name";
+  const email = careerProfile.personal.email || data.personal.email || "";
+  const phone = careerProfile.personal.phone || data.personal.phone || "";
+  const fileName = `Cover-Letter-${coverLetter.companyName.replace(/\s+/g, "-")}-${coverLetter.jobTitle.replace(/\s+/g, "-")}.pdf`;
+  return (
+    <LinkComp
+      document={<Doc coverLetter={coverLetter} fullName={fullName} email={email} phone={phone} />}
+      fileName={fileName}
+      className="group flex-1 px-5 sm:px-6 py-3 sm:py-3.5 border border-gray-200 text-gray-700 rounded-xl font-bold text-center hover:bg-gray-50 hover:border-gray-300 transition-all text-sm flex items-center justify-center gap-2 min-h-[44px]"
+    >
+      {({ loading }: { loading: boolean }) => (
+        <>
+          {loading ? "Generating..." : "Download Cover Letter"}
+          {!loading && <svg className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>}
+        </>
+      )}
+    </LinkComp>
+  );
+}
+
 export default function ExportPage() {
   const { data, template, theme, layoutOverride, manualLayout, isPremium, setIsPremium, hydrateFromStorage, resetAll, fontChoice } = useCVStore();
   const [hydrated, setHydrated] = useState(false);
@@ -176,6 +212,7 @@ export default function ExportPage() {
 
               <div className="mt-5 flex flex-col sm:flex-row gap-3">
                 <DownloadButton data={data} template={template} theme={theme} layout={finalLayout} isPremium={isPremium} fontChoice={fontChoice} fileName={generateFileName()} />
+                <CoverLetterDownloadButton />
 
                 <button
                   onClick={() => setShowResetModal(true)}

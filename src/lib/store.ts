@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { CVData, CVTemplate, CVTheme, LayoutConfig, CVState, CVType, ApplicationGoal, CVVersion, CVProfile, SectionId, FontChoice, CareerProfile, SavedJobDescription, Skill, WorkExperience, Education, Language, Certification, Project, Award, Publication, VolunteerExperience, Course } from "@/types";
+import { CVData, CVTemplate, CVTheme, LayoutConfig, CVState, CVType, ApplicationGoal, CVVersion, CVProfile, SectionId, FontChoice, CareerProfile, SavedJobDescription, CoverLetter, Skill, WorkExperience, Education, Language, Certification, Project, Award, Publication, VolunteerExperience, Course } from "@/types";
 import { templates } from "@/lib/templates";
 import { themes } from "@/lib/themes";
 import { computeProfile } from "@/lib/cvProfile";
@@ -184,6 +184,8 @@ interface CVStore extends CVState {
   populateFromCareerProfile: () => void;
   saveJobDescription: (jd: SavedJobDescription) => void;
   removeJobDescription: (id: string) => void;
+  setCoverLetter: (cl: CoverLetter | null) => void;
+  updateCoverLetterParagraph: (paragraphId: string, content: string) => void;
 }
 
 function generateId(): string {
@@ -235,6 +237,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
   history: [],
   historyIndex: -1,
   careerProfile: { ...defaultCareerProfile },
+  coverLetter: null,
 
   setData: (data) => set((state) => {
     const merged = { ...state.data, ...data };
@@ -963,6 +966,17 @@ export const useCVStore = create<CVStore>((set, get) => ({
     const cp = { ...state.careerProfile, jobDescriptions: state.careerProfile.jobDescriptions.filter((j) => j.id !== id), updatedAt: new Date().toISOString() };
     return { careerProfile: cp };
   }),
+  setCoverLetter: (cl) => set({ coverLetter: cl }),
+  updateCoverLetterParagraph: (paragraphId, content) => set((state) => {
+    if (!state.coverLetter) return {};
+    return {
+      coverLetter: {
+        ...state.coverLetter,
+        updatedAt: new Date().toISOString(),
+        paragraphs: state.coverLetter.paragraphs.map((p) => p.id === paragraphId ? { ...p, content } : p),
+      },
+    };
+  }),
 
   undo: () => {
     const { history, historyIndex } = get();
@@ -1021,6 +1035,10 @@ export const useCVStore = create<CVStore>((set, get) => ({
         const parsedCP = JSON.parse(careerSaved);
         set({ careerProfile: { ...defaultCareerProfile, ...parsedCP, personal: { ...defaultCareerProfile.personal, ...(parsedCP.personal || {}) } } });
       }
+      const coverLetterSaved = localStorage.getItem("smartcv-cover-letter");
+      if (coverLetterSaved) {
+        set({ coverLetter: JSON.parse(coverLetterSaved) });
+      }
     } catch (e) {
       console.warn("Failed to load saved data, resetting to defaults:", e);
     }
@@ -1028,9 +1046,10 @@ export const useCVStore = create<CVStore>((set, get) => ({
 
   saveToStorage: () => {
     try {
-      const { data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice, careerProfile } = get();
+      const { data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice, careerProfile, coverLetter } = get();
       localStorage.setItem("smartcv-data-v2", JSON.stringify({ data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice }));
       localStorage.setItem("smartcv-career-profile", JSON.stringify(careerProfile));
+      if (coverLetter) localStorage.setItem("smartcv-cover-letter", JSON.stringify(coverLetter));
     } catch {}
   },
 
@@ -1040,6 +1059,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
       localStorage.removeItem("smartcv-versions");
       localStorage.removeItem("smartcv-premium");
       localStorage.removeItem("smartcv-career-profile");
+      localStorage.removeItem("smartcv-cover-letter");
     } catch {}
     set({
       data: { ...defaultCVData },
@@ -1062,7 +1082,8 @@ export const useCVStore = create<CVStore>((set, get) => ({
       jobDescription: "",
       history: [],
       historyIndex: -1,
-      careerProfile: { ...defaultCareerProfile },
+  careerProfile: { ...defaultCareerProfile },
+  coverLetter: null,
     });
   },
 }));
