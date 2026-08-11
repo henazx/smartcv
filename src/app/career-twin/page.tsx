@@ -95,6 +95,7 @@ export default function CareerTwinPage() {
           </Link>
           <div className="flex items-center gap-2">
             <Link href="/build" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Builder</Link>
+            <Link href="/job-match" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Job Match</Link>
             <Link href="/build" className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-sm">Create CV</Link>
           </div>
         </div>
