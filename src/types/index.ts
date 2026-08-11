@@ -522,6 +522,23 @@ export interface CoverLetter {
   paragraphs: CoverLetterParagraph[];
 }
 
+export type ApplicationStatus = "saved" | "applied" | "interview" | "offer" | "rejected" | "withdrawn";
+
+export interface Application {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  jobTitle: string;
+  companyName: string;
+  jobDescription: string;
+  url: string;
+  status: ApplicationStatus;
+  appliedAt: string | null;
+  interviewAt: string | null;
+  notes: string;
+  matchScore: number | null;
+}
+
 export interface CVState {
   data: CVData;
   template: CVTemplate;
@@ -545,4 +562,5 @@ export interface CVState {
   historyIndex: number;
   careerProfile: CareerProfile;
   coverLetter: CoverLetter | null;
+  applications: Application[];
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { CVData, CVTemplate, CVTheme, LayoutConfig, CVState, CVType, ApplicationGoal, CVVersion, CVProfile, SectionId, FontChoice, CareerProfile, SavedJobDescription, CoverLetter, Skill, WorkExperience, Education, Language, Certification, Project, Award, Publication, VolunteerExperience, Course } from "@/types";
+import { CVData, CVTemplate, CVTheme, LayoutConfig, CVState, CVType, ApplicationGoal, CVVersion, CVProfile, SectionId, FontChoice, CareerProfile, SavedJobDescription, CoverLetter, Application, Skill, WorkExperience, Education, Language, Certification, Project, Award, Publication, VolunteerExperience, Course } from "@/types";
 import { templates } from "@/lib/templates";
 import { themes } from "@/lib/themes";
 import { computeProfile } from "@/lib/cvProfile";
@@ -186,6 +186,9 @@ interface CVStore extends CVState {
   removeJobDescription: (id: string) => void;
   setCoverLetter: (cl: CoverLetter | null) => void;
   updateCoverLetterParagraph: (paragraphId: string, content: string) => void;
+  addApplication: (app: Application) => void;
+  updateApplication: (id: string, updates: Partial<Application>) => void;
+  removeApplication: (id: string) => void;
 }
 
 function generateId(): string {
@@ -238,6 +241,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
   historyIndex: -1,
   careerProfile: { ...defaultCareerProfile },
   coverLetter: null,
+  applications: [],
 
   setData: (data) => set((state) => {
     const merged = { ...state.data, ...data };
@@ -977,6 +981,13 @@ export const useCVStore = create<CVStore>((set, get) => ({
       },
     };
   }),
+  addApplication: (app) => set((state) => ({ applications: [...state.applications, app] })),
+  updateApplication: (id, updates) => set((state) => ({
+    applications: state.applications.map((a) => a.id === id ? { ...a, ...updates, updatedAt: new Date().toISOString() } : a),
+  })),
+  removeApplication: (id) => set((state) => ({
+    applications: state.applications.filter((a) => a.id !== id),
+  })),
 
   undo: () => {
     const { history, historyIndex } = get();
@@ -1039,6 +1050,10 @@ export const useCVStore = create<CVStore>((set, get) => ({
       if (coverLetterSaved) {
         set({ coverLetter: JSON.parse(coverLetterSaved) });
       }
+      const applicationsSaved = localStorage.getItem("smartcv-applications");
+      if (applicationsSaved) {
+        set({ applications: JSON.parse(applicationsSaved) });
+      }
     } catch (e) {
       console.warn("Failed to load saved data, resetting to defaults:", e);
     }
@@ -1046,10 +1061,11 @@ export const useCVStore = create<CVStore>((set, get) => ({
 
   saveToStorage: () => {
     try {
-      const { data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice, careerProfile, coverLetter } = get();
+      const { data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice, careerProfile, coverLetter, applications } = get();
       localStorage.setItem("smartcv-data-v2", JSON.stringify({ data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice }));
       localStorage.setItem("smartcv-career-profile", JSON.stringify(careerProfile));
       if (coverLetter) localStorage.setItem("smartcv-cover-letter", JSON.stringify(coverLetter));
+      localStorage.setItem("smartcv-applications", JSON.stringify(applications));
     } catch {}
   },
 
@@ -1060,6 +1076,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
       localStorage.removeItem("smartcv-premium");
       localStorage.removeItem("smartcv-career-profile");
       localStorage.removeItem("smartcv-cover-letter");
+      localStorage.removeItem("smartcv-applications");
     } catch {}
     set({
       data: { ...defaultCVData },
@@ -1084,6 +1101,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
       historyIndex: -1,
   careerProfile: { ...defaultCareerProfile },
   coverLetter: null,
+  applications: [],
     });
   },
 }));

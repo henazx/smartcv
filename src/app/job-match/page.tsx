@@ -110,7 +110,7 @@ function ScoreCircle({ score, size = 120 }: { score: number; size?: number }) {
 }
 
 export default function JobMatchPage() {
-  const { careerProfile, hydrateFromStorage, saveJobDescription, data, populateFromCareerProfile, setJobDescription } = useCVStore();
+  const { careerProfile, hydrateFromStorage, saveJobDescription, data, populateFromCareerProfile, setJobDescription, addApplication } = useCVStore();
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
   const [jobInput, setJobInput] = useState("");
@@ -193,6 +193,7 @@ export default function JobMatchPage() {
           <div className="flex items-center gap-2">
             <Link href="/career-twin" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all hidden sm:inline-flex">Career Twin</Link>
             <Link href="/cover-letter" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all hidden sm:inline-flex">Cover Letter</Link>
+            <Link href="/applications" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all hidden sm:inline-flex">Applications</Link>
             <Link href="/build" className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-sm">Create CV</Link>
           </div>
         </div>
@@ -459,8 +460,30 @@ export default function JobMatchPage() {
                   >
                     Cover Letter
                   </button>
-                  <Link href="/career-twin" className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all text-center">
-                    Update Twin
+                  <button
+                    onClick={() => {
+                      const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+                      addApplication({
+                        id,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString(),
+                        jobTitle: jobTitle || "Untitled Position",
+                        companyName: jobCompany || "Unknown Company",
+                        jobDescription: jobInput,
+                        url: jobUrl,
+                        status: "saved",
+                        appliedAt: null,
+                        interviewAt: null,
+                        notes: "",
+                        matchScore: result?.score ?? null,
+                      });
+                    }}
+                    className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all text-center"
+                  >
+                    Save to Tracker
+                  </button>
+                  <Link href="/applications" className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all text-center">
+                    View Apps
                   </Link>
                 </div>
               </div>
