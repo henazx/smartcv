@@ -82,6 +82,7 @@ export default function ApplicationsPage() {
           <div className="flex gap-2">
             <Link href="/job-match" className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50">Job Match</Link>
             <Link href="/career-twin" className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50">Career Twin</Link>
+            <Link href="/readiness" className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50">Readiness</Link>
           </div>
         </div>
       </header>

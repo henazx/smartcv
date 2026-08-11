@@ -93,6 +93,9 @@ export function BuilderLayout() {
             <Link href="/interview" className="hidden sm:inline-flex px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-xs font-semibold hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm transition-all">
               Interview
             </Link>
+            <Link href="/readiness" className="hidden sm:inline-flex px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-xs font-semibold hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm transition-all">
+              Readiness
+            </Link>
             <Link href="/export" className="px-2 sm:px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl text-xs font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-md hover:shadow-lg">
               Export PDF
             </Link>
