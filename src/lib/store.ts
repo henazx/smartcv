@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { CVData, CVTemplate, CVTheme, LayoutConfig, CVState, CVType, ApplicationGoal, CVVersion, CVProfile, SectionId, FontChoice } from "@/types";
+import { CVData, CVTemplate, CVTheme, LayoutConfig, CVState, CVType, ApplicationGoal, CVVersion, CVProfile, SectionId, FontChoice, CareerProfile, SavedJobDescription, Skill, WorkExperience, Education, Language, Certification, Project, Award, Publication, VolunteerExperience, Course } from "@/types";
 import { templates } from "@/lib/templates";
 import { themes } from "@/lib/themes";
 import { computeProfile } from "@/lib/cvProfile";
@@ -46,6 +46,28 @@ const defaultProfile: CVProfile = {
   recommendedSections: ["summary", "experience", "education", "skills"],
   recommendedSectionOrder: ["summary", "experience", "education", "skills"],
   recommendedSkills: [], roleKeywords: [],
+};
+
+const defaultCareerProfile: CareerProfile = {
+  id: "",
+  createdAt: "",
+  updatedAt: "",
+  personal: { fullName: "", headline: "", email: "", phone: "", address: "", linkedIn: "", github: "", website: "", summary: "" },
+  education: [],
+  experiences: [],
+  skills: [],
+  languages: [],
+  certifications: [],
+  projects: [],
+  awards: [],
+  publications: [],
+  volunteer: [],
+  courses: [],
+  careerInterests: [],
+  targetRoles: [],
+  targetIndustries: [],
+  careerGoals: "",
+  jobDescriptions: [],
 };
 
 interface CVStore extends CVState {
@@ -120,6 +142,47 @@ interface CVStore extends CVState {
   downloadBackup: () => void;
   importBackup: (file: File) => void;
   applyBulletSuggestion: (experienceId: string, bulletIndex: number, improved: string) => void;
+
+  // Career Twin
+  updateCareerProfile: (updates: Partial<CareerProfile>) => void;
+  updateCareerPersonal: (personal: Partial<CareerProfile["personal"]>) => void;
+  addCareerExperience: () => void;
+  updateCareerExperience: (id: string, data: Partial<WorkExperience>) => void;
+  removeCareerExperience: (id: string) => void;
+  addCareerEducation: () => void;
+  updateCareerEducation: (id: string, data: Partial<Education>) => void;
+  removeCareerEducation: (id: string) => void;
+  addCareerSkill: (name: string, proficiency?: Skill["proficiency"], category?: string) => void;
+  updateCareerSkill: (id: string, data: Partial<Skill>) => void;
+  removeCareerSkill: (id: string) => void;
+  addCareerLanguage: () => void;
+  updateCareerLanguage: (id: string, data: Partial<Language>) => void;
+  removeCareerLanguage: (id: string) => void;
+  addCareerCertification: () => void;
+  updateCareerCertification: (id: string, data: Partial<Certification>) => void;
+  removeCareerCertification: (id: string) => void;
+  addCareerProject: () => void;
+  updateCareerProject: (id: string, data: Partial<Project>) => void;
+  removeCareerProject: (id: string) => void;
+  addCareerAward: () => void;
+  updateCareerAward: (id: string, data: Partial<Award>) => void;
+  removeCareerAward: (id: string) => void;
+  addCareerPublication: () => void;
+  updateCareerPublication: (id: string, data: Partial<Publication>) => void;
+  removeCareerPublication: (id: string) => void;
+  addCareerVolunteer: () => void;
+  updateCareerVolunteer: (id: string, data: Partial<VolunteerExperience>) => void;
+  removeCareerVolunteer: (id: string) => void;
+  addCareerCourse: () => void;
+  updateCareerCourse: (id: string, data: Partial<Course>) => void;
+  removeCareerCourse: (id: string) => void;
+  setCareerInterests: (interests: string[]) => void;
+  setCareerTargetRoles: (roles: string[]) => void;
+  setCareerTargetIndustries: (industries: string[]) => void;
+  setCareerGoals: (goals: string) => void;
+  importCareerFromCV: () => void;
+  saveJobDescription: (jd: SavedJobDescription) => void;
+  removeJobDescription: (id: string) => void;
 }
 
 function generateId(): string {
@@ -132,8 +195,9 @@ function debouncedSave(get: () => CVStore) {
   if (_saveTimer) clearTimeout(_saveTimer);
   _saveTimer = setTimeout(() => {
     try {
-      const { data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice } = get();
+      const { data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice, careerProfile } = get();
       localStorage.setItem("smartcv-data-v2", JSON.stringify({ data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice }));
+      localStorage.setItem("smartcv-career-profile", JSON.stringify(careerProfile));
     } catch {}
   }, 300);
 }
@@ -169,6 +233,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
   jobDescription: "",
   history: [],
   historyIndex: -1,
+  careerProfile: { ...defaultCareerProfile },
 
   setData: (data) => set((state) => {
     const merged = { ...state.data, ...data };
@@ -654,6 +719,210 @@ export const useCVStore = create<CVStore>((set, get) => ({
       return { data: merged, ...pushHistory(state.history, state.historyIndex, merged) };
     }),
 
+  // Career Twin actions
+  updateCareerProfile: (updates) => set((state) => {
+    const cp = { ...state.careerProfile, ...updates, updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
+  updateCareerPersonal: (personal) => set((state) => {
+    const cp = { ...state.careerProfile, personal: { ...state.careerProfile.personal, ...personal }, updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
+  addCareerExperience: () => set((state) => {
+    const cp = { ...state.careerProfile, experiences: [...state.careerProfile.experiences, { id: generateId(), company: "", role: "", startDate: "", endDate: "", current: false, bullets: [""] }], updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  updateCareerExperience: (id, data) => set((state) => {
+    const cp = { ...state.careerProfile, experiences: state.careerProfile.experiences.map((e) => e.id === id ? { ...e, ...data } : e), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  removeCareerExperience: (id) => set((state) => {
+    const cp = { ...state.careerProfile, experiences: state.careerProfile.experiences.filter((e) => e.id !== id), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
+  addCareerEducation: () => set((state) => {
+    const cp = { ...state.careerProfile, education: [...state.careerProfile.education, { id: generateId(), institution: "", degree: "", field: "", startDate: "", endDate: "", gpa: "" }], updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  updateCareerEducation: (id, data) => set((state) => {
+    const cp = { ...state.careerProfile, education: state.careerProfile.education.map((e) => e.id === id ? { ...e, ...data } : e), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  removeCareerEducation: (id) => set((state) => {
+    const cp = { ...state.careerProfile, education: state.careerProfile.education.filter((e) => e.id !== id), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
+  addCareerSkill: (name, proficiency = null, category = "General") => set((state) => {
+    const cp = { ...state.careerProfile, skills: [...state.careerProfile.skills, { id: generateId(), name, proficiency, category }], updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  updateCareerSkill: (id, data) => set((state) => {
+    const cp = { ...state.careerProfile, skills: state.careerProfile.skills.map((s) => s.id === id ? { ...s, ...data } : s), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  removeCareerSkill: (id) => set((state) => {
+    const cp = { ...state.careerProfile, skills: state.careerProfile.skills.filter((s) => s.id !== id), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
+  addCareerLanguage: () => set((state) => {
+    const cp = { ...state.careerProfile, languages: [...state.careerProfile.languages, { id: generateId(), name: "", proficiency: "conversational" as const }], updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  updateCareerLanguage: (id, data) => set((state) => {
+    const cp = { ...state.careerProfile, languages: state.careerProfile.languages.map((l) => l.id === id ? { ...l, ...data } : l), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  removeCareerLanguage: (id) => set((state) => {
+    const cp = { ...state.careerProfile, languages: state.careerProfile.languages.filter((l) => l.id !== id), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
+  addCareerCertification: () => set((state) => {
+    const cp = { ...state.careerProfile, certifications: [...state.careerProfile.certifications, { id: generateId(), name: "", issuer: "", date: "" }], updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  updateCareerCertification: (id, data) => set((state) => {
+    const cp = { ...state.careerProfile, certifications: state.careerProfile.certifications.map((c) => c.id === id ? { ...c, ...data } : c), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  removeCareerCertification: (id) => set((state) => {
+    const cp = { ...state.careerProfile, certifications: state.careerProfile.certifications.filter((c) => c.id !== id), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
+  addCareerProject: () => set((state) => {
+    const cp = { ...state.careerProfile, projects: [...state.careerProfile.projects, { id: generateId(), name: "", description: "", url: "", technologies: [], bullets: [""] }], updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  updateCareerProject: (id, data) => set((state) => {
+    const cp = { ...state.careerProfile, projects: state.careerProfile.projects.map((p) => p.id === id ? { ...p, ...data } : p), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  removeCareerProject: (id) => set((state) => {
+    const cp = { ...state.careerProfile, projects: state.careerProfile.projects.filter((p) => p.id !== id), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
+  addCareerAward: () => set((state) => {
+    const cp = { ...state.careerProfile, awards: [...state.careerProfile.awards, { id: generateId(), name: "", issuer: "", date: "", description: "" }], updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  updateCareerAward: (id, data) => set((state) => {
+    const cp = { ...state.careerProfile, awards: state.careerProfile.awards.map((a) => a.id === id ? { ...a, ...data } : a), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  removeCareerAward: (id) => set((state) => {
+    const cp = { ...state.careerProfile, awards: state.careerProfile.awards.filter((a) => a.id !== id), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
+  addCareerPublication: () => set((state) => {
+    const cp = { ...state.careerProfile, publications: [...state.careerProfile.publications, { id: generateId(), title: "", journal: "", date: "", url: "" }], updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  updateCareerPublication: (id, data) => set((state) => {
+    const cp = { ...state.careerProfile, publications: state.careerProfile.publications.map((p) => p.id === id ? { ...p, ...data } : p), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  removeCareerPublication: (id) => set((state) => {
+    const cp = { ...state.careerProfile, publications: state.careerProfile.publications.filter((p) => p.id !== id), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
+  addCareerVolunteer: () => set((state) => {
+    const cp = { ...state.careerProfile, volunteer: [...state.careerProfile.volunteer, { id: generateId(), organization: "", role: "", startDate: "", endDate: "", description: "" }], updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  updateCareerVolunteer: (id, data) => set((state) => {
+    const cp = { ...state.careerProfile, volunteer: state.careerProfile.volunteer.map((v) => v.id === id ? { ...v, ...data } : v), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  removeCareerVolunteer: (id) => set((state) => {
+    const cp = { ...state.careerProfile, volunteer: state.careerProfile.volunteer.filter((v) => v.id !== id), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
+  addCareerCourse: () => set((state) => {
+    const cp = { ...state.careerProfile, courses: [...state.careerProfile.courses, { id: generateId(), name: "", provider: "", date: "", description: "" }], updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  updateCareerCourse: (id, data) => set((state) => {
+    const cp = { ...state.careerProfile, courses: state.careerProfile.courses.map((c) => c.id === id ? { ...c, ...data } : c), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  removeCareerCourse: (id) => set((state) => {
+    const cp = { ...state.careerProfile, courses: state.careerProfile.courses.filter((c) => c.id !== id), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
+  setCareerInterests: (careerInterests) => set((state) => {
+    const cp = { ...state.careerProfile, careerInterests, updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  setCareerTargetRoles: (targetRoles) => set((state) => {
+    const cp = { ...state.careerProfile, targetRoles, updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  setCareerTargetIndustries: (targetIndustries) => set((state) => {
+    const cp = { ...state.careerProfile, targetIndustries, updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  setCareerGoals: (careerGoals) => set((state) => {
+    const cp = { ...state.careerProfile, careerGoals, updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
+  importCareerFromCV: () => set((state) => {
+    const d = state.data;
+    const now = new Date().toISOString();
+    const cp: CareerProfile = {
+      id: state.careerProfile.id || generateId(),
+      createdAt: state.careerProfile.createdAt || now,
+      updatedAt: now,
+      personal: {
+        fullName: d.personal.fullName,
+        headline: d.personal.headline,
+        email: d.personal.email,
+        phone: d.personal.phone,
+        address: d.personal.address,
+        linkedIn: d.personal.linkedIn,
+        github: d.personal.github,
+        website: d.personal.website,
+        summary: d.personal.summary,
+      },
+      education: JSON.parse(JSON.stringify(d.education)),
+      experiences: JSON.parse(JSON.stringify(d.experiences)),
+      skills: JSON.parse(JSON.stringify(d.skills)),
+      languages: JSON.parse(JSON.stringify(d.languages)),
+      certifications: JSON.parse(JSON.stringify(d.certifications)),
+      projects: JSON.parse(JSON.stringify(d.projects)),
+      awards: JSON.parse(JSON.stringify(d.awards)),
+      publications: JSON.parse(JSON.stringify(d.publications)),
+      volunteer: JSON.parse(JSON.stringify(d.volunteer)),
+      courses: JSON.parse(JSON.stringify(d.courses)),
+      careerInterests: state.careerProfile.careerInterests,
+      targetRoles: state.careerProfile.targetRoles.length > 0 ? state.careerProfile.targetRoles : (state.targetJobTitle ? [state.targetJobTitle] : []),
+      targetIndustries: state.careerProfile.targetIndustries.length > 0 ? state.careerProfile.targetIndustries : (state.targetIndustry ? [state.targetIndustry] : []),
+      careerGoals: state.careerProfile.careerGoals,
+      jobDescriptions: state.careerProfile.jobDescriptions,
+    };
+    return { careerProfile: cp };
+  }),
+
+  saveJobDescription: (jd) => set((state) => {
+    const cp = { ...state.careerProfile, jobDescriptions: [...state.careerProfile.jobDescriptions, jd], updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+  removeJobDescription: (id) => set((state) => {
+    const cp = { ...state.careerProfile, jobDescriptions: state.careerProfile.jobDescriptions.filter((j) => j.id !== id), updatedAt: new Date().toISOString() };
+    return { careerProfile: cp };
+  }),
+
   undo: () => {
     const { history, historyIndex } = get();
     if (historyIndex > 0) {
@@ -706,6 +975,11 @@ export const useCVStore = create<CVStore>((set, get) => ({
       if (versionsSaved) {
         set({ versions: JSON.parse(versionsSaved) });
       }
+      const careerSaved = localStorage.getItem("smartcv-career-profile");
+      if (careerSaved) {
+        const parsedCP = JSON.parse(careerSaved);
+        set({ careerProfile: { ...defaultCareerProfile, ...parsedCP, personal: { ...defaultCareerProfile.personal, ...(parsedCP.personal || {}) } } });
+      }
     } catch (e) {
       console.warn("Failed to load saved data, resetting to defaults:", e);
     }
@@ -713,8 +987,9 @@ export const useCVStore = create<CVStore>((set, get) => ({
 
   saveToStorage: () => {
     try {
-      const { data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice } = get();
+      const { data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice, careerProfile } = get();
       localStorage.setItem("smartcv-data-v2", JSON.stringify({ data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice }));
+      localStorage.setItem("smartcv-career-profile", JSON.stringify(careerProfile));
     } catch {}
   },
 
@@ -723,6 +998,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
       localStorage.removeItem("smartcv-data-v2");
       localStorage.removeItem("smartcv-versions");
       localStorage.removeItem("smartcv-premium");
+      localStorage.removeItem("smartcv-career-profile");
     } catch {}
     set({
       data: { ...defaultCVData },
@@ -745,6 +1021,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
       jobDescription: "",
       history: [],
       historyIndex: -1,
+      careerProfile: { ...defaultCareerProfile },
     });
   },
 }));

@@ -455,6 +455,14 @@ function TemplatePreview({ templateId }: { templateId: string; layoutType?: stri
 
 const SHOWCASE_TEMPLATES = ["modern-sidebar", "executive", "timeline", "creative-portfolio"];
 
+const FLOW_STEPS = [
+  { icon: "1", label: "Your Career", desc: "Build your Career Twin once" },
+  { icon: "2", label: "Job Match", desc: "Paste any job description" },
+  { icon: "3", label: "Smart Match", desc: "See your match score & gaps" },
+  { icon: "4", label: "Tailored CV", desc: "CV customized for that job" },
+  { icon: "5", label: "Interview Prep", desc: "Practice with real questions" },
+];
+
 export default function Home() {
   const { setTemplate } = useCVStore();
   const router = useRouter();
@@ -474,6 +482,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white animate-fade-in">
+      {/* Nav */}
       <nav className="border-b border-gray-100 bg-white/90 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -483,8 +492,9 @@ export default function Home() {
             <span className="text-lg font-bold text-gray-900">SmartCV</span>
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/career-twin" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all hidden sm:inline-flex">Career Twin</Link>
             <Link href="/premium" className="px-3 py-1.5 text-xs font-semibold text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-all">Premium</Link>
-            <Link href="/build" className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-sm">Create My CV</Link>
+            <Link href="/career-twin" className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-sm">Build My Career Twin</Link>
           </div>
         </div>
       </nav>
@@ -492,26 +502,25 @@ export default function Home() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100" />
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
         <div className="relative max-w-6xl mx-auto px-4 pt-16 pb-12 md:pt-24 md:pb-16">
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100/80 text-gray-600 rounded-full text-xs font-medium mb-5 backdrop-blur-sm">
-              Built for Ethiopian job seekers
+              Your career, intelligently applied
             </div>
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-5 leading-tight">
-              Build a CV that<br />
-              <span className="bg-gradient-to-r from-gray-900 via-gray-600 to-gray-400 bg-clip-text text-transparent">gets noticed</span>
+              Your CV is only<br />
+              <span className="bg-gradient-to-r from-gray-900 via-gray-600 to-gray-400 bg-clip-text text-transparent">the beginning</span>
             </h1>
             <p className="text-base md:text-lg text-gray-500 max-w-xl mx-auto mb-8 leading-relaxed">
-              Create professional, ATS-friendly CVs in minutes. 12 distinct templates, smart optimization, and instant PDF export.
+              SmartCV turns your experience into a complete job application tailored to every opportunity. One profile,无限 applications.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/build" className="px-7 py-3.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl font-bold hover:from-gray-800 hover:to-gray-600 transition-all shadow-lg text-sm">
-                Start Building - Free
+              <Link href="/career-twin" className="px-7 py-3.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl font-bold hover:from-gray-800 hover:to-gray-600 transition-all shadow-lg text-sm">
+                Build My Career Twin
               </Link>
-              <a href="#templates" className="px-7 py-3.5 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all text-sm">
-                View Templates
-              </a>
+              <Link href="/build" className="px-7 py-3.5 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all text-sm">
+                Try Job Match
+              </Link>
             </div>
           </div>
 
@@ -560,13 +569,34 @@ export default function Home() {
         </div>
       </section>
 
+      {/* How It Works — Career Twin Flow */}
+      <section className="py-16 relative">
+        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40' fill='%23000' fill-opacity='1'/%3E%3C/svg%3E\")" }} />
+        <div className="relative max-w-6xl mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-4">How SmartCV Works</h2>
+          <p className="text-sm text-gray-500 text-center max-w-md mx-auto mb-12">Build your career profile once. Then tailor it for every job you apply to.</p>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {FLOW_STEPS.map((step, i) => (
+              <div key={step.icon} className="text-center relative">
+                {i < 4 && <div className="hidden md:block absolute top-5 left-[60%] w-[80%] border-t border-dashed border-gray-200" />}
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <span className="text-lg font-bold text-gray-700">{step.icon}</span>
+                </div>
+                <h3 className="font-bold text-sm mb-1">{step.label}</h3>
+                <p className="text-xs text-gray-500 leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Template Gallery */}
       <section id="templates" className="py-16 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-gray-50/50 to-white" />
         <div className="relative max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">Choose Your Template</h2>
-            <p className="text-sm text-gray-500 max-w-md mx-auto">12 genuinely different structures, not just color variations. Each built for a specific career stage.</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">12 Templates. One Career Twin.</h2>
+            <p className="text-sm text-gray-500 max-w-md mx-auto">Each template is a genuinely different structure. Your Career Twin adapts to any of them.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {templates.map((t) => (
@@ -595,31 +625,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-16 relative">
-        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40' fill='%23000' fill-opacity='1'/%3E%3C/svg%3E\")" }} />
-        <div className="relative max-w-6xl mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-12">How It Works</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { num: "1", title: "Tell Us About You", desc: "Choose your CV type and career goal" },
-              { num: "2", title: "Fill In Details", desc: "Guided form with smart suggestions" },
-              { num: "3", title: "Pick a Design", desc: "12 templates, 10 color themes" },
-              { num: "4", title: "Download PDF", desc: "ATS-scored, print-ready export" },
-            ].map((step, i) => (
-              <div key={step.num} className="text-center relative">
-                {i < 3 && <div className="hidden md:block absolute top-5 left-[60%] w-[80%] border-t border-dashed border-gray-200" />}
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:shadow-md transition-shadow">
-                  <span className="text-lg font-bold text-gray-700">{step.num}</span>
-                </div>
-                <h3 className="font-bold text-sm mb-1">{step.title}</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Features */}
       <section id="features" className="py-16 bg-white relative">
         <div className="absolute inset-0 bg-gradient-to-b from-gray-50/30 to-transparent" />
@@ -627,21 +632,21 @@ export default function Home() {
           <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-12">Everything You Need</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { icon: "12", title: "Distinct Templates", desc: "Not color variations - genuinely different CV structures for every career stage and industry." },
-              { icon: "ATS", title: "ATS Optimization", desc: "Built-in ATS scoring analyzes your CV against applicant tracking systems before you apply." },
-              { icon: "QC", title: "CV Quality Check", desc: "Analyzes content, completeness, design, and relevance with a quality score." },
-              { icon: "10", title: "Color Themes", desc: "Professional color palettes that complement any template design." },
-              { icon: "PDF", title: "Instant PDF Export", desc: "Client-side PDF generation. Your data never leaves your browser." },
-              { icon: "ETB", title: "Ethiopian Payment", desc: "Pay with Chapa in Ethiopian Birr. One-time payment, no subscriptions." },
-              { icon: "5s", title: "Auto-Save", desc: "Your progress is automatically saved every 5 seconds." },
-              { icon: "Mobile", title: "Mobile-Friendly", desc: "Edit and preview your CV on any device, anywhere." },
-              { icon: "ET", title: "Ethiopian-First", desc: "Ethiopian phone formats, cities, industries, and local payment." },
+              { icon: "\u2601", title: "Career Twin", desc: "Your professional profile, saved once. Edit it, and every CV you generate updates automatically." },
+              { icon: "\u2694", title: "Job Match", desc: "Paste a job description. See your match score, missing skills, and exactly what to improve." },
+              { icon: "\u270D", title: "Tailored CVs", desc: "Generate a CV customized for each specific job. Same Career Twin, different emphasis." },
+              { icon: "\u2709", title: "Cover Letters", desc: "Auto-generated cover letters based on your profile and the job you're applying to." },
+              { icon: "\u2699", title: "ATS Optimization", desc: "Built-in ATS scoring analyzes your CV against applicant tracking systems before you apply." },
+              { icon: "\u2605", title: "12 Templates", desc: "Genuinely different CV structures for every career stage and industry." },
+              { icon: "\u23F1", title: "Interview Prep", desc: "Practice with role-specific questions generated from the job description and your experience." },
+              { icon: "\u2611", title: "Application Tracker", desc: "Track every application from saved to interview. Never lose track of where you applied." },
+              { icon: "\u260E", title: "Ethiopian-First", desc: "Ethiopian phone formats, cities, industries, Chapa payment in Birr." },
             ].map((feature) => (
               <div key={feature.title} className="p-5 rounded-2xl border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="relative">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mb-3">
-                    <span className="text-xs font-bold text-gray-700">{feature.icon}</span>
+                    <span className="text-lg">{feature.icon}</span>
                   </div>
                   <h3 className="font-semibold text-sm mb-1">{feature.title}</h3>
                   <p className="text-xs text-gray-500 leading-relaxed">{feature.desc}</p>
@@ -657,9 +662,9 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" />
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
         <div className="relative max-w-6xl mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-white">Ready to build your CV?</h2>
-          <p className="text-gray-400 mb-8 text-sm md:text-base max-w-md mx-auto">Free to use. No account required. Your data stays in your browser. Start in under 5 minutes.</p>
-          <Link href="/build" className="inline-block px-10 py-4 bg-gradient-to-r from-white to-gray-100 text-gray-900 rounded-xl font-bold hover:from-gray-100 hover:to-white transition-all shadow-lg text-sm">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-white">Ready to build your Career Twin?</h2>
+          <p className="text-gray-400 mb-8 text-sm md:text-base max-w-md mx-auto">Free to start. No account required. Your data stays in your browser. One profile, unlimited applications.</p>
+          <Link href="/career-twin" className="inline-block px-10 py-4 bg-gradient-to-r from-white to-gray-100 text-gray-900 rounded-xl font-bold hover:from-gray-100 hover:to-white transition-all shadow-lg text-sm">
             Get Started Free
           </Link>
         </div>
@@ -675,8 +680,9 @@ export default function Home() {
             <span className="font-bold text-sm text-gray-900">SmartCV</span>
           </div>
           <div className="flex items-center gap-6 text-xs text-gray-400">
-            <Link href="/premium" className="hover:text-gray-600 transition-colors">Premium</Link>
+            <Link href="/career-twin" className="hover:text-gray-600 transition-colors">Career Twin</Link>
             <Link href="/build" className="hover:text-gray-600 transition-colors">Builder</Link>
+            <Link href="/premium" className="hover:text-gray-600 transition-colors">Premium</Link>
             <span>Made in Ethiopia</span>
           </div>
           <p className="text-xs text-gray-300">&copy; 2026 SmartCV</p>

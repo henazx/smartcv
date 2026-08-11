@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SmartCV - Build Your Professional Resume",
+  title: "SmartCV - Your Career Twin",
   description:
-    "Build a professionally designed CV in minutes. 12 unique templates, intelligent scoring, ATS optimization, and PDF export. Free to use.",
-  keywords: ["resume builder", "CV maker", "Ethiopian resume", "professional CV", "ATS resume", "PDF export"],
+    "SmartCV turns your experience into a complete job application tailored to every opportunity. Build your Career Twin, match jobs, generate tailored CVs, and prepare for interviews.",
+  keywords: ["career twin", "CV builder", "job match", "Ethiopian resume", "tailored CV", "interview prep", "ATS optimization", "cover letter"],
   openGraph: {
-    title: "SmartCV - Build Your Professional Resume",
-    description: "Build a professionally designed CV in minutes. 12 unique templates, intelligent scoring, and PDF export.",
+    title: "SmartCV - Your Career Twin",
+    description: "Your career, intelligently applied. Build your Career Twin, match jobs, and generate tailored applications.",
     type: "website",
     locale: "en_US",
   },

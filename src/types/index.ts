@@ -447,6 +447,54 @@ export interface JobMatchResult {
   hasJobDescription: boolean;
 }
 
+// --- Career Twin (persistent professional profile) ---
+
+export interface CareerProfile {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+
+  personal: {
+    fullName: string;
+    headline: string;
+    email: string;
+    phone: string;
+    address: string;
+    linkedIn: string;
+    github: string;
+    website: string;
+    summary: string;
+  };
+
+  education: Education[];
+  experiences: WorkExperience[];
+  skills: Skill[];
+  languages: Language[];
+  certifications: Certification[];
+  projects: Project[];
+  awards: Award[];
+  publications: Publication[];
+  volunteer: VolunteerExperience[];
+  courses: Course[];
+
+  careerInterests: string[];
+  targetRoles: string[];
+  targetIndustries: string[];
+  careerGoals: string;
+
+  jobDescriptions: SavedJobDescription[];
+}
+
+export interface SavedJobDescription {
+  id: string;
+  title: string;
+  company: string;
+  description: string;
+  url: string;
+  savedAt: string;
+  matchResult: JobMatchResult | null;
+}
+
 // --- Combined State ---
 
 export interface CVVersion {
@@ -480,4 +528,5 @@ export interface CVState {
   jobDescription: string;
   history: CVData[];
   historyIndex: number;
+  careerProfile: CareerProfile;
 }
