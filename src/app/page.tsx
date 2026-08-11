@@ -468,6 +468,8 @@ export default function Home() {
   const { setTemplate } = useCVStore();
   const router = useRouter();
   const [showcaseIndex, setShowcaseIndex] = useState(0);
+  const [logoClicks, setLogoClicks] = useState(0);
+  const [showDeveloper, setShowDeveloper] = useState(false);
   const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -680,12 +682,27 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-gray-100 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
+          <div
+            className="flex items-center gap-2 cursor-pointer select-none"
+            onClick={() => {
+              const next = logoClicks + 1;
+              setLogoClicks(next);
+              if (next >= 3) {
+                setShowDeveloper(true);
+                setTimeout(() => { setShowDeveloper(false); setLogoClicks(0); }, 4000);
+              }
+            }}
+          >
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-gray-900 to-gray-700 flex items-center justify-center">
               <span className="text-white font-bold text-[10px]">S</span>
             </div>
             <span className="font-bold text-sm text-gray-900">SmartCV</span>
           </div>
+          {showDeveloper && (
+            <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full animate-fade-in">
+              Developed by Henazx
+            </span>
+          )}
           <div className="flex items-center gap-6 text-xs text-gray-400">
             <Link href="/career-twin" className="hover:text-gray-600 transition-colors">Career Twin</Link>
             <Link href="/job-match" className="hover:text-gray-600 transition-colors">Job Match</Link>
