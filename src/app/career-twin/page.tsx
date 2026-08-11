@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useCVStore } from "@/lib/store";
 import { templates } from "@/lib/templates";
 import { themes as allThemes } from "@/lib/themes";
 import { computeLayout, analyzeContent } from "@/lib/layoutEngine";
 import { estimatePageCount } from "@/lib/atsScorer";
+import type { CVData, SectionId } from "@/types";
 
 type TwinSection = "overview" | "personal" | "experience" | "education" | "skills" | "extras" | "goals" | "jobs";
 
@@ -70,7 +71,7 @@ export default function CareerTwinPage() {
     addCareerCertification, updateCareerCertification, removeCareerCertification,
     addCareerProject, updateCareerProject, removeCareerProject,
     setCareerInterests, setCareerTargetRoles, setCareerTargetIndustries, setCareerGoals,
-    importCareerFromCV, populateFromCareerProfile, data, removeJobDescription,
+    importCareerFromCV, populateFromCareerProfile, removeJobDescription, data,
     template, setTemplate, theme, setTheme, isPremium, fontChoice,
     layoutOverride, manualLayout,
   } = useCVStore();
@@ -95,18 +96,54 @@ export default function CareerTwinPage() {
   const hasData = cp.personal.fullName || cp.experiences.length > 0 || cp.skills.length > 0;
   const hasCvData = data.personal.fullName || data.experiences.length > 0 || data.skills.length > 0;
 
-  // Auto-populate CV data from Career Twin for live preview
+  // Compute preview data directly from career profile — no one-time copy needed
+  const previewData = useMemo<CVData>(() => {
+    return {
+      personal: {
+        fullName: cp.personal.fullName,
+        headline: cp.personal.headline,
+        email: cp.personal.email,
+        phone: cp.personal.phone,
+        address: cp.personal.address,
+        summary: cp.personal.summary,
+        photoUrl: null,
+        photoSize: 60,
+        photoPosition: "center" as const,
+        linkedIn: cp.personal.linkedIn,
+        github: cp.personal.github,
+        website: cp.personal.website,
+      },
+      experiences: cp.experiences.map((e) => ({ ...e })),
+      education: cp.education.map((e) => ({ ...e })),
+      skills: cp.skills.map((s) => ({ ...s })),
+      languages: cp.languages.map((l) => ({ ...l })),
+      certifications: cp.certifications.map((c) => ({ ...c })),
+      projects: cp.projects.map((p) => ({ ...p })),
+      awards: cp.awards.map((a) => ({ ...a })),
+      publications: cp.publications.map((p) => ({ ...p })),
+      references: [],
+      volunteer: cp.volunteer.map((v) => ({ ...v })),
+      courses: cp.courses.map((c) => ({ ...c })),
+      includeReferences: false,
+      showAvailableUponRequest: true,
+      activeSections: ["summary", "experience", "education", "skills"] as SectionId[],
+    };
+  }, [cp]);
+
+  // Also sync to CV data store so Export/Job Match can use it
+  const populatedRef = useRef(false);
   useEffect(() => {
-    if (hasData && hydrated) {
+    if (hasData && hydrated && !populatedRef.current) {
       populateFromCareerProfile();
+      populatedRef.current = true;
     }
   }, [hasData, hydrated, populateFromCareerProfile]);
 
   // CV Preview layout
-  const autoLayout = useMemo(() => computeLayout(data, template), [data, template]);
+  const autoLayout = useMemo(() => computeLayout(previewData, template), [previewData, template]);
   const finalLayout = layoutOverride ? { ...autoLayout, ...manualLayout } : autoLayout;
-  const contentAnalysis = useMemo(() => analyzeContent(data), [data]);
-  const pageCount = useMemo(() => estimatePageCount(data), [data]);
+  const contentAnalysis = useMemo(() => analyzeContent(previewData), [previewData]);
+  const pageCount = useMemo(() => estimatePageCount(previewData), [previewData]);
 
   const completeness = (() => {
     let filled = 0;
@@ -622,7 +659,7 @@ export default function CareerTwinPage() {
                 {mounted ? (
                   <div style={{ height: "min(500px, 60vh)", transform: `scale(${previewZoom / 100})`, transformOrigin: "top center" }}>
                     <PdfViewerWrapper width="100%" height="100%" showToolbar={false}>
-                      <PdfDocumentLoader data={data} template={template} theme={theme} layout={finalLayout} isPremium={isPremium} fontChoice={fontChoice} />
+                      <PdfDocumentLoader data={previewData} template={template} theme={theme} layout={finalLayout} isPremium={isPremium} fontChoice={fontChoice} />
                     </PdfViewerWrapper>
                   </div>
                 ) : (
