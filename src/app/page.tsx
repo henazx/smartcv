@@ -700,7 +700,7 @@ export default function Home() {
           </div>
           {showDeveloper && (
             <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full animate-fade-in">
-              Developed by Henazx
+              Developed by Henok Neknikie
             </span>
           )}
           <div className="flex items-center gap-6 text-xs text-gray-400">
