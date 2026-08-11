@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCVStore } from "@/lib/store";
 import { analyzeJobMatch } from "@/lib/cvProfile";
 import type { CVData, JobMatchResult, CareerProfile } from "@/types";
@@ -109,7 +110,8 @@ function ScoreCircle({ score, size = 120 }: { score: number; size?: number }) {
 }
 
 export default function JobMatchPage() {
-  const { careerProfile, hydrateFromStorage, saveJobDescription, data } = useCVStore();
+  const { careerProfile, hydrateFromStorage, saveJobDescription, data, populateFromCareerProfile, setJobDescription } = useCVStore();
+  const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
   const [jobInput, setJobInput] = useState("");
   const [jobTitle, setJobTitle] = useState("");
@@ -440,9 +442,16 @@ export default function JobMatchPage() {
 
                 {/* Actions */}
                 <div className="flex gap-3">
-                  <Link href="/build" className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl text-sm font-bold hover:from-gray-800 hover:to-gray-600 transition-all text-center">
+                  <button
+                    onClick={() => {
+                      if (hasProfile) populateFromCareerProfile();
+                      if (jobInput.trim()) setJobDescription(jobInput);
+                      router.push("/build");
+                    }}
+                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl text-sm font-bold hover:from-gray-800 hover:to-gray-600 transition-all text-center"
+                  >
                     Create Tailored CV
-                  </Link>
+                  </button>
                   <Link href="/career-twin" className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all text-center">
                     Update Career Twin
                   </Link>

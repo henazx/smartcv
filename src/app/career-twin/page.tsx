@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCVStore } from "@/lib/store";
 
 type TwinSection = "overview" | "personal" | "experience" | "education" | "skills" | "extras" | "goals" | "jobs";
@@ -34,6 +35,7 @@ function TextInput({ value, onChange, placeholder, multiline }: { value: string;
 }
 
 export default function CareerTwinPage() {
+  const router = useRouter();
   const {
     careerProfile, hydrateFromStorage,
     updateCareerPersonal,
@@ -44,7 +46,7 @@ export default function CareerTwinPage() {
     addCareerCertification, updateCareerCertification, removeCareerCertification,
     addCareerProject, updateCareerProject, removeCareerProject,
     setCareerInterests, setCareerTargetRoles, setCareerTargetIndustries, setCareerGoals,
-    importCareerFromCV, data, removeJobDescription,
+    importCareerFromCV, populateFromCareerProfile, data, removeJobDescription,
   } = useCVStore();
 
   const [hydrated, setHydrated] = useState(false);
@@ -96,7 +98,7 @@ export default function CareerTwinPage() {
           <div className="flex items-center gap-2">
             <Link href="/build" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Builder</Link>
             <Link href="/job-match" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Job Match</Link>
-            <Link href="/build" className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-sm">Create CV</Link>
+            <Link href="/build" onClick={(e) => { e.preventDefault(); populateFromCareerProfile(); router.push("/build"); }} className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-sm">Create CV</Link>
           </div>
         </div>
       </nav>
@@ -202,7 +204,7 @@ export default function CareerTwinPage() {
                         </div>
                       </div>
                       <div className="flex gap-2 pt-2">
-                        <Link href="/build" className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl text-sm font-bold hover:from-gray-800 hover:to-gray-600 transition-all text-center">
+                        <Link href="/build" onClick={(e) => { e.preventDefault(); populateFromCareerProfile(); router.push("/build"); }} className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl text-sm font-bold hover:from-gray-800 hover:to-gray-600 transition-all text-center">
                           Generate CV
                         </Link>
                         <button onClick={() => setActiveTab("goals")} className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">

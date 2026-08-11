@@ -181,6 +181,7 @@ interface CVStore extends CVState {
   setCareerTargetIndustries: (industries: string[]) => void;
   setCareerGoals: (goals: string) => void;
   importCareerFromCV: () => void;
+  populateFromCareerProfile: () => void;
   saveJobDescription: (jd: SavedJobDescription) => void;
   removeJobDescription: (id: string) => void;
 }
@@ -912,6 +913,46 @@ export const useCVStore = create<CVStore>((set, get) => ({
       jobDescriptions: state.careerProfile.jobDescriptions,
     };
     return { careerProfile: cp };
+  }),
+
+  populateFromCareerProfile: () => set((state) => {
+    const cp = state.careerProfile;
+    const mergedData: CVData = {
+      personal: {
+        fullName: cp.personal.fullName,
+        headline: cp.personal.headline,
+        email: cp.personal.email,
+        phone: cp.personal.phone,
+        address: cp.personal.address,
+        summary: cp.personal.summary,
+        photoUrl: null,
+        photoSize: 60,
+        photoPosition: "center" as const,
+        linkedIn: cp.personal.linkedIn,
+        github: cp.personal.github,
+        website: cp.personal.website,
+      },
+      experiences: JSON.parse(JSON.stringify(cp.experiences)),
+      education: JSON.parse(JSON.stringify(cp.education)),
+      skills: JSON.parse(JSON.stringify(cp.skills)),
+      languages: JSON.parse(JSON.stringify(cp.languages)),
+      certifications: JSON.parse(JSON.stringify(cp.certifications)),
+      projects: JSON.parse(JSON.stringify(cp.projects)),
+      awards: JSON.parse(JSON.stringify(cp.awards)),
+      publications: JSON.parse(JSON.stringify(cp.publications)),
+      references: [],
+      volunteer: JSON.parse(JSON.stringify(cp.volunteer)),
+      courses: JSON.parse(JSON.stringify(cp.courses)),
+      includeReferences: false,
+      showAvailableUponRequest: true,
+      activeSections: ["summary", "experience", "education", "skills"] as SectionId[],
+    };
+    return {
+      data: mergedData,
+      targetJobTitle: cp.targetRoles[0] || state.targetJobTitle,
+      targetIndustry: cp.targetIndustries[0] || state.targetIndustry,
+      ...pushHistory(state.history, state.historyIndex, mergedData),
+    };
   }),
 
   saveJobDescription: (jd) => set((state) => {
