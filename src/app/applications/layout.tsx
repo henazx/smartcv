@@ -3,11 +3,11 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Application Tracker - Manage Your Job Applications",
   description: "Track all your job applications in one place. Monitor status from saved to applied to interview to offer. Generate recruiter messages and interview prep materials.",
-  alternates: { canonical: "https://smartcv.app/applications" },
+  alternates: { canonical: "https://smartcv-virid.vercel.app/applications" },
   openGraph: {
     title: "Application Tracker | SmartCV",
     description: "Track all your job applications in one place. Monitor status from saved to interview to offer.",
-    url: "https://smartcv.app/applications",
+    url: "https://smartcv-virid.vercel.app/applications",
   },
 };
 

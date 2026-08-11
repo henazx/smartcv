@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: "IT CV Template - Professional CV Templates for Tech Jobs",
   description:
     "IT CV templates designed for software developers, data scientists, DevOps engineers, and IT professionals in Ethiopia. Skills-focused layouts that highlight technical abilities. Free to use.",
-  alternates: { canonical: "https://smartcv.app/it-cv-template" },
+  alternates: { canonical: "https://smartcv-virid.vercel.app/it-cv-template" },
   openGraph: {
     title: "IT CV Template - Tech CV Templates | SmartCV",
     description: "IT CV templates designed for software developers, data scientists, and IT professionals. Free to use.",
-    url: "https://smartcv.app/it-cv-template",
+    url: "https://smartcv-virid.vercel.app/it-cv-template",
     type: "website",
   },
 };

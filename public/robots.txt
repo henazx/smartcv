@@ -3,4 +3,4 @@ Allow: /
 Disallow: /api/
 Disallow: /build/theme
 
-Sitemap: https://smartcv.app/sitemap.xml
+Sitemap: https://smartcv-virid.vercel.app/sitemap.xml

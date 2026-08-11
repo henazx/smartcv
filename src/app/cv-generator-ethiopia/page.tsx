@@ -5,12 +5,12 @@ export const metadata: Metadata = {
   title: "Free CV Generator Ethiopia | Create a Professional CV Online",
   description:
     "Create a professional, ATS-friendly CV in minutes with SmartCV's free CV generator for Ethiopian job seekers. 12+ templates, smart formatting, and tailored content suggestions.",
-  alternates: { canonical: "https://smartcv.app/cv-generator-ethiopia" },
+  alternates: { canonical: "https://smartcv-virid.vercel.app/cv-generator-ethiopia" },
   openGraph: {
     title: "Free CV Generator Ethiopia | SmartCV",
     description:
       "Create a professional, ATS-friendly CV in minutes. Free for Ethiopian job seekers.",
-    url: "https://smartcv.app/cv-generator-ethiopia",
+    url: "https://smartcv-virid.vercel.app/cv-generator-ethiopia",
     type: "website",
   },
 };

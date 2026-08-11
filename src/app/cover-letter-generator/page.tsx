@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: "Cover Letter Generator - Write Tailored Cover Letters Online",
   description:
     "Generate tailored cover letters for every job application. SmartCV's cover letter generator matches your experience to each job description. Free for Ethiopian job seekers.",
-  alternates: { canonical: "https://smartcv.app/cover-letter-generator" },
+  alternates: { canonical: "https://smartcv-virid.vercel.app/cover-letter-generator" },
   openGraph: {
     title: "Cover Letter Generator | SmartCV",
     description: "Generate tailored cover letters for every job application. Free for Ethiopian job seekers.",
-    url: "https://smartcv.app/cover-letter-generator",
+    url: "https://smartcv-virid.vercel.app/cover-letter-generator",
     type: "website",
   },
 };

@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: "Ethiopian CV Templates - Professional CV Designs for Ethiopia",
   description:
     "Browse 12+ professional CV templates designed for Ethiopian job seekers. ATS-friendly templates for IT, banking, healthcare, engineering, and more. Free to use.",
-  alternates: { canonical: "https://smartcv.app/ethiopian-cv-template" },
+  alternates: { canonical: "https://smartcv-virid.vercel.app/ethiopian-cv-template" },
   openGraph: {
     title: "Ethiopian CV Templates | SmartCV",
     description: "Browse 12+ professional CV templates designed for Ethiopian job seekers. ATS-friendly and free to use.",
-    url: "https://smartcv.app/ethiopian-cv-template",
+    url: "https://smartcv-virid.vercel.app/ethiopian-cv-template",
     type: "website",
   },
 };

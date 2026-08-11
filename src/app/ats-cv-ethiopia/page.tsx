@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: "ATS CV Ethiopia - Create an ATS-Friendly CV That Gets Interviews",
   description:
     "Learn how to create an ATS-friendly CV for Ethiopian employers. SmartCV generates CVs that pass Applicant Tracking Systems and reach hiring managers. Free ATS optimization.",
-  alternates: { canonical: "https://smartcv.app/ats-cv-ethiopia" },
+  alternates: { canonical: "https://smartcv-virid.vercel.app/ats-cv-ethiopia" },
   openGraph: {
     title: "ATS CV Ethiopia - ATS-Friendly CV Generator | SmartCV",
     description: "Create an ATS-friendly CV that passes automated screening. Free for Ethiopian job seekers.",
-    url: "https://smartcv.app/ats-cv-ethiopia",
+    url: "https://smartcv-virid.vercel.app/ats-cv-ethiopia",
     type: "website",
   },
 };

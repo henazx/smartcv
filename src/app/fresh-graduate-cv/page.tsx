@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: "Fresh Graduate CV - How to Write a CV With No Experience",
   description:
     "Just graduated? Learn how to write a professional CV with no work experience. SmartCV helps fresh graduates highlight education, projects, and transferable skills. Free CV builder.",
-  alternates: { canonical: "https://smartcv.app/fresh-graduate-cv" },
+  alternates: { canonical: "https://smartcv-virid.vercel.app/fresh-graduate-cv" },
   openGraph: {
     title: "Fresh Graduate CV Guide | SmartCV",
     description: "Learn how to write a professional CV with no work experience. Free CV builder for fresh graduates.",
-    url: "https://smartcv.app/fresh-graduate-cv",
+    url: "https://smartcv-virid.vercel.app/fresh-graduate-cv",
     type: "website",
   },
 };

@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: "CV Tips - Expert Advice for a Winning CV",
   description:
     "Expert CV tips for Ethiopian job seekers. Learn how to write a professional summary, quantify achievements, format your CV, and tailor it for each application. Free guide.",
-  alternates: { canonical: "https://smartcv.app/cv-tips" },
+  alternates: { canonical: "https://smartcv-virid.vercel.app/cv-tips" },
   openGraph: {
     title: "CV Tips - Expert Advice for a Winning CV | SmartCV",
     description: "Expert CV tips for Ethiopian job seekers. Learn how to write and format a winning CV.",
-    url: "https://smartcv.app/cv-tips",
+    url: "https://smartcv-virid.vercel.app/cv-tips",
     type: "website",
   },
 };

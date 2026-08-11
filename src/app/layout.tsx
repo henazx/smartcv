@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://smartcv.app"),
+  metadataBase: new URL("https://smartcv-virid.vercel.app"),
   title: {
     default: "Free CV Generator Ethiopia | SmartCV - CV Maker & Builder",
     template: "%s | SmartCV",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     title: "Free CV Generator Ethiopia | SmartCV",
     description:
       "Create a professional, ATS-friendly CV in minutes. Free CV generator for Ethiopian job seekers with 12+ templates, job matching, and cover letters.",
-    url: "https://smartcv.app",
+    url: "https://smartcv-virid.vercel.app",
     siteName: "SmartCV",
     locale: "en_US",
     type: "website",
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://smartcv.app",
+    canonical: "https://smartcv-virid.vercel.app",
   },
 };
 
@@ -85,7 +85,7 @@ export default function RootLayout({
     name: "SmartCV",
     description:
       "Free CV generator for Ethiopian job seekers. Create ATS-friendly CVs, match jobs, and prepare for interviews.",
-    url: "https://smartcv.app",
+    url: "https://smartcv-virid.vercel.app",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     offers: {
@@ -99,7 +99,7 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "SmartCV",
-    url: "https://smartcv.app",
+    url: "https://smartcv-virid.vercel.app",
     founder: {
       "@type": "Person",
       name: "Henok Neknikie",
@@ -112,10 +112,10 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "SmartCV",
-    url: "https://smartcv.app",
+    url: "https://smartcv-virid.vercel.app",
     potentialAction: {
       "@type": "SearchAction",
-      target: "https://smartcv.app/career-twin",
+      target: "https://smartcv-virid.vercel.app/career-twin",
       "query-input": "required name=target",
     },
   };

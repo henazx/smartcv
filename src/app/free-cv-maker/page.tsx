@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: "Free CV Maker - Create a Professional CV Online (No Cost)",
   description:
     "Make a professional CV for free. SmartCV is a free CV maker with 12+ templates, ATS optimization, job matching, and cover letter generation. No account required. Your data stays in your browser.",
-  alternates: { canonical: "https://smartcv.app/free-cv-maker" },
+  alternates: { canonical: "https://smartcv-virid.vercel.app/free-cv-maker" },
   openGraph: {
     title: "Free CV Maker - Create a Professional CV Online | SmartCV",
     description: "Make a professional CV for free. 12+ templates, ATS optimization, and job matching. No account required.",
-    url: "https://smartcv.app/free-cv-maker",
+    url: "https://smartcv-virid.vercel.app/free-cv-maker",
     type: "website",
   },
 };
