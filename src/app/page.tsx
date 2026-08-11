@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { useCVStore } from "@/lib/store";
 import { templates } from "@/lib/templates";
+import { trackPageView } from "@/lib/analytics";
 
 const EXAMPLE = {
   name: "Abebe Kebede",
@@ -470,6 +471,7 @@ export default function Home() {
   const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    trackPageView("/");
     autoScrollRef.current = setInterval(() => {
       setShowcaseIndex((prev) => (prev + 1) % SHOWCASE_TEMPLATES.length);
     }, 3500);

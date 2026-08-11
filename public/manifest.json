@@ -1,0 +1,21 @@
+{
+  "name": "SmartCV - Your Career Twin",
+  "short_name": "SmartCV",
+  "description": "Build your Career Twin, match jobs, and generate tailored applications.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF5",
+  "theme_color": "#1a1a1a",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
