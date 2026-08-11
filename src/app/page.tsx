@@ -525,7 +525,7 @@ export default function Home() {
               <Link href="/career-twin" className="px-7 py-3.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl font-bold hover:from-gray-800 hover:to-gray-600 transition-all shadow-lg text-sm">
                 Build My Career Twin
               </Link>
-              <Link href="/build" className="px-7 py-3.5 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all text-sm">
+              <Link href="/career-twin" className="px-7 py-3.5 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all text-sm">
                 Try Job Match
               </Link>
             </div>
@@ -693,7 +693,7 @@ export default function Home() {
             <Link href="/applications" className="hover:text-gray-600 transition-colors">Applications</Link>
             <Link href="/interview" className="hover:text-gray-600 transition-colors">Interview</Link>
             <Link href="/readiness" className="hover:text-gray-600 transition-colors">Readiness</Link>
-            <Link href="/build" className="hover:text-gray-600 transition-colors">Builder</Link>
+            <Link href="/career-twin" className="hover:text-gray-600 transition-colors">Career Twin</Link>
             <Link href="/premium" className="hover:text-gray-600 transition-colors">Premium</Link>
             <span>Made in Ethiopia</span>
           </div>

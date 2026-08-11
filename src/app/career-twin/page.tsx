@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCVStore } from "@/lib/store";
+import { templates } from "@/lib/templates";
+import { themes as allThemes } from "@/lib/themes";
+import { computeLayout, analyzeContent } from "@/lib/layoutEngine";
+import { estimatePageCount } from "@/lib/atsScorer";
 
 type TwinSection = "overview" | "personal" | "experience" | "education" | "skills" | "extras" | "goals" | "jobs";
 
@@ -34,8 +37,29 @@ function TextInput({ value, onChange, placeholder, multiline }: { value: string;
   return <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400" />;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function PdfViewerWrapper({ children, ...props }: any) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [Viewer, setViewer] = useState<React.ComponentType<any> | null>(null);
+  useEffect(() => {
+    import("@react-pdf/renderer").then((m) => setViewer(() => m.PDFViewer));
+  }, []);
+  if (!Viewer) return <div className="w-full h-full bg-gray-50 animate-pulse rounded-lg" />;
+  return <Viewer {...props}>{children}</Viewer>;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function PdfDocumentLoader(props: any) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [Doc, setDoc] = useState<React.ComponentType<any> | null>(null);
+  useEffect(() => {
+    import("@/components/pdf/CVDocument").then((m) => setDoc(() => m.CVDocument));
+  }, []);
+  if (!Doc) return null;
+  return <Doc {...props} />;
+}
+
 export default function CareerTwinPage() {
-  const router = useRouter();
   const {
     careerProfile, hydrateFromStorage,
     updateCareerPersonal,
@@ -47,6 +71,8 @@ export default function CareerTwinPage() {
     addCareerProject, updateCareerProject, removeCareerProject,
     setCareerInterests, setCareerTargetRoles, setCareerTargetIndustries, setCareerGoals,
     importCareerFromCV, populateFromCareerProfile, data, removeJobDescription,
+    template, setTemplate, theme, setTheme, isPremium, fontChoice,
+    layoutOverride, manualLayout,
   } = useCVStore();
 
   const [hydrated, setHydrated] = useState(false);
@@ -56,33 +82,48 @@ export default function CareerTwinPage() {
   const [roleInput, setRoleInput] = useState("");
   const [industryInput, setIndustryInput] = useState("");
   const [showImportModal, setShowImportModal] = useState(false);
+  const [previewZoom, setPreviewZoom] = useState(100);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     hydrateFromStorage();
     setHydrated(true);
+    setMounted(true);
   }, [hydrateFromStorage]);
-
-  if (!hydrated) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" /></div>;
-  }
 
   const cp = careerProfile;
   const hasData = cp.personal.fullName || cp.experiences.length > 0 || cp.skills.length > 0;
   const hasCvData = data.personal.fullName || data.experiences.length > 0 || data.skills.length > 0;
 
+  // Auto-populate CV data from Career Twin for live preview
+  useEffect(() => {
+    if (hasData && hydrated) {
+      populateFromCareerProfile();
+    }
+  }, [hasData, hydrated, populateFromCareerProfile]);
+
+  // CV Preview layout
+  const autoLayout = useMemo(() => computeLayout(data, template), [data, template]);
+  const finalLayout = layoutOverride ? { ...autoLayout, ...manualLayout } : autoLayout;
+  const contentAnalysis = useMemo(() => analyzeContent(data), [data]);
+  const pageCount = useMemo(() => estimatePageCount(data), [data]);
+
   const completeness = (() => {
     let filled = 0;
     let total = 0;
     if (cp.personal.fullName) filled++; total++;
+    if (cp.personal.headline) filled++; total++;
     if (cp.personal.email) filled++; total++;
-    if (cp.personal.phone) filled++; total++;
     if (cp.personal.summary) filled++; total++;
     if (cp.experiences.length > 0) filled++; total++;
     if (cp.education.length > 0) filled++; total++;
     if (cp.skills.length > 0) filled++; total++;
-    if (cp.targetRoles.length > 0) filled++; total++;
     return total > 0 ? Math.round((filled / total) * 100) : 0;
   })();
+
+  if (!hydrated) {
+    return <div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" /></div>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 animate-fade-in">
@@ -96,27 +137,26 @@ export default function CareerTwinPage() {
             <span className="text-lg font-bold text-gray-900">SmartCV</span>
           </Link>
           <div className="flex items-center gap-2">
-            <Link href="/build" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Builder</Link>
             <Link href="/job-match" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Job Match</Link>
             <Link href="/cover-letter" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Cover Letter</Link>
             <Link href="/applications" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Applications</Link>
             <Link href="/interview" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Interview</Link>
             <Link href="/readiness" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Readiness</Link>
-            <Link href="/build" onClick={(e) => { e.preventDefault(); populateFromCareerProfile(); router.push("/build"); }} className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-sm">Create CV</Link>
+            <Link href="/export" className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-sm">Export PDF</Link>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-[1600px] mx-auto px-4 py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-2">Career Twin</h1>
-          <p className="text-sm text-gray-500">Your professional profile, stored once. Edit here, and every CV you generate updates automatically.</p>
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-1">Career Twin</h1>
+          <p className="text-sm text-gray-500">Edit your profile on the left. See your CV update live on the right.</p>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-6">
-          {/* Sidebar tabs */}
-          <div className="lg:col-span-3">
+        <div className="grid lg:grid-cols-[280px_1fr_400px] gap-6">
+          {/* Sidebar tabs + Template/Theme */}
+          <div className="lg:col-span-1">
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/80 p-2 sticky top-20 shadow-sm">
               {SECTION_TABS.map((tab) => (
                 <button
@@ -149,11 +189,45 @@ export default function CareerTwinPage() {
                   Import from existing CV
                 </button>
               )}
+
+              {/* Template Selector */}
+              <div className="mt-4 px-3 py-3 bg-gray-50 rounded-xl">
+                <div className="text-xs font-semibold text-gray-600 mb-2">Template</div>
+                <select
+                  value={template.id}
+                  onChange={(e) => {
+                    const t = templates.find((t) => t.id === e.target.value);
+                    if (t) setTemplate(t);
+                  }}
+                  className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-gray-400"
+                >
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Theme Selector */}
+              <div className="mt-3 px-3 py-3 bg-gray-50 rounded-xl">
+                <div className="text-xs font-semibold text-gray-600 mb-2">Theme</div>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {allThemes.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setTheme(t)}
+                      className={`w-full aspect-square rounded-lg border-2 transition-all ${theme.id === t.id ? "border-gray-900 shadow-sm" : "border-transparent hover:border-gray-300"}`}
+                      style={{ background: t.colors.primary }}
+                      title={t.name}
+                    />
+                  ))}
+                </div>
+                <div className="text-[10px] text-gray-400 mt-1.5">{theme.name}</div>
+              </div>
             </div>
           </div>
 
-          {/* Main content */}
-          <div className="lg:col-span-9">
+          {/* Main content - Profile Editor */}
+          <div className="lg:col-span-1 space-y-4">
             {/* Overview */}
             {activeTab === "overview" && (
               <div className="space-y-4">
@@ -208,7 +282,7 @@ export default function CareerTwinPage() {
                         </div>
                       </div>
                       <div className="flex gap-2 pt-2">
-                        <Link href="/build" onClick={(e) => { e.preventDefault(); populateFromCareerProfile(); router.push("/build"); }} className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl text-sm font-bold hover:from-gray-800 hover:to-gray-600 transition-all text-center">
+                        <Link href="/career-twin" onClick={(e) => { e.preventDefault(); }} className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl text-sm font-bold hover:from-gray-800 hover:to-gray-600 transition-all text-center">
                           Generate CV
                         </Link>
                         <button onClick={() => setActiveTab("goals")} className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
@@ -504,7 +578,7 @@ export default function CareerTwinPage() {
                 {cp.jobDescriptions.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-gray-400 text-sm mb-3">No saved jobs yet.</p>
-                    <Link href="/build" className="text-sm text-gray-600 hover:text-gray-900 font-semibold underline">Go to Builder to paste a job description</Link>
+                    <Link href="/job-match" className="text-sm text-gray-600 hover:text-gray-900 font-semibold underline">Go to Job Match to paste a job description</Link>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -528,6 +602,36 @@ export default function CareerTwinPage() {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Live CV Preview */}
+          <div className="lg:col-span-1">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/80 overflow-hidden shadow-sm sticky top-20">
+              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-bold text-gray-900">Live Preview</h3>
+                  <p className="text-[10px] text-gray-400 mt-0.5">Page {pageCount} &middot; {contentAnalysis.contentDensity}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setPreviewZoom(Math.max(50, previewZoom - 10))} className="w-6 h-6 rounded bg-gray-100 text-gray-600 text-xs font-bold hover:bg-gray-200">-</button>
+                  <span className="text-[10px] text-gray-400 w-8 text-center font-medium">{previewZoom}%</span>
+                  <button onClick={() => setPreviewZoom(Math.min(150, previewZoom + 10))} className="w-6 h-6 rounded bg-gray-100 text-gray-600 text-xs font-bold hover:bg-gray-200">+</button>
+                </div>
+              </div>
+              <div className="p-3">
+                {mounted ? (
+                  <div style={{ height: "min(500px, 60vh)", transform: `scale(${previewZoom / 100})`, transformOrigin: "top center" }}>
+                    <PdfViewerWrapper width="100%" height="100%" showToolbar={false}>
+                      <PdfDocumentLoader data={data} template={template} theme={theme} layout={finalLayout} isPremium={isPremium} fontChoice={fontChoice} />
+                    </PdfViewerWrapper>
+                  </div>
+                ) : (
+                  <div className="w-full h-96 bg-gray-50 animate-pulse rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

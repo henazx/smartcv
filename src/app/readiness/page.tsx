@@ -115,7 +115,7 @@ export default function ReadinessPage() {
             <h1 className="text-xl font-bold text-gray-900 mt-1">Career Readiness</h1>
           </div>
           <div className="flex gap-2">
-            <Link href="/build" className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50">Builder</Link>
+            <Link href="/career-twin" className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50">Career Twin</Link>
             <Link href="/export" className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600">Export</Link>
           </div>
         </div>
