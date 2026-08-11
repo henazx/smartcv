@@ -8,6 +8,7 @@ import { themes as allThemes } from "@/lib/themes";
 import { computeLayout, analyzeContent } from "@/lib/layoutEngine";
 import { estimatePageCount } from "@/lib/atsScorer";
 import type { CVData, SectionId } from "@/types";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 type TwinSection = "overview" | "personal" | "experience" | "education" | "skills" | "extras" | "goals" | "jobs";
 
@@ -72,6 +73,7 @@ export default function CareerTwinPage() {
     addCareerProject, updateCareerProject, removeCareerProject,
     setCareerInterests, setCareerTargetRoles, setCareerTargetIndustries, setCareerGoals,
     importCareerFromCV, populateFromCareerProfile, removeJobDescription, data,
+    resetCareerProfile,
     template, setTemplate, theme, setTheme, isPremium, fontChoice,
     layoutOverride, manualLayout,
   } = useCVStore();
@@ -83,6 +85,7 @@ export default function CareerTwinPage() {
   const [roleInput, setRoleInput] = useState("");
   const [industryInput, setIndustryInput] = useState("");
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const [previewZoom, setPreviewZoom] = useState(100);
   const [mounted, setMounted] = useState(false);
 
@@ -260,6 +263,13 @@ export default function CareerTwinPage() {
                 </div>
                 <div className="text-[10px] text-gray-400 mt-1.5">{theme.name}</div>
               </div>
+
+              {/* Start Fresh */}
+              {hasData && (
+                <button onClick={() => setShowResetModal(true)} className="mt-3 w-full px-3 py-2.5 bg-red-50 text-red-600 rounded-xl text-xs font-semibold hover:bg-red-100 transition-all text-left">
+                  Start Fresh
+                </button>
+              )}
             </div>
           </div>
 
@@ -686,6 +696,16 @@ export default function CareerTwinPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={showResetModal}
+        title="Start Fresh?"
+        message="This will permanently delete all your Career Twin data. This cannot be undone."
+        confirmLabel="Delete Everything"
+        danger
+        onConfirm={() => { resetCareerProfile(); setShowResetModal(false); }}
+        onCancel={() => setShowResetModal(false)}
+      />
     </div>
   );
 }

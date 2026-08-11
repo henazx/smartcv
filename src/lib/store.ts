@@ -180,6 +180,7 @@ interface CVStore extends CVState {
   setCareerTargetRoles: (roles: string[]) => void;
   setCareerTargetIndustries: (industries: string[]) => void;
   setCareerGoals: (goals: string) => void;
+  resetCareerProfile: () => void;
   importCareerFromCV: () => void;
   populateFromCareerProfile: () => void;
   saveJobDescription: (jd: SavedJobDescription) => void;
@@ -883,6 +884,11 @@ export const useCVStore = create<CVStore>((set, get) => ({
   setCareerGoals: (careerGoals) => set((state) => {
     const cp = { ...state.careerProfile, careerGoals, updatedAt: new Date().toISOString() };
     return { careerProfile: cp };
+  }),
+
+  resetCareerProfile: () => set(() => {
+    localStorage.removeItem("smartcv-career-profile");
+    return { careerProfile: { ...defaultCareerProfile } };
   }),
 
   importCareerFromCV: () => set((state) => {
