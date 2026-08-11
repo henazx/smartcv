@@ -468,7 +468,7 @@ export default function Home() {
   const { setTemplate } = useCVStore();
   const router = useRouter();
   const [showcaseIndex, setShowcaseIndex] = useState(0);
-  const [logoClicks, setLogoClicks] = useState(0);
+  const logoClicksRef = useRef(0);
   const [showDeveloper, setShowDeveloper] = useState(false);
   const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -685,11 +685,10 @@ export default function Home() {
           <div
             className="flex items-center gap-2 cursor-pointer select-none"
             onClick={() => {
-              const next = logoClicks + 1;
-              setLogoClicks(next);
-              if (next >= 3) {
+              logoClicksRef.current += 1;
+              if (logoClicksRef.current >= 3) {
                 setShowDeveloper(true);
-                setTimeout(() => { setShowDeveloper(false); setLogoClicks(0); }, 4000);
+                setTimeout(() => { setShowDeveloper(false); logoClicksRef.current = 0; }, 4000);
               }
             }}
           >
