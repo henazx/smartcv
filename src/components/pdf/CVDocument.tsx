@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { CVData, CVTemplate, CVTheme, LayoutConfig, FontChoice, FONT_OPTIONS } from "@/types";
-import { ensureFontsRegistered } from "@/lib/fonts";
 
 import { ClassicProfessional } from "./templates/ClassicProfessional";
 import { ModernSidebar } from "./templates/ModernSidebar";
@@ -50,7 +49,54 @@ const templateMap: Record<string, React.FC<TemplateProps>> = {
 };
 
 export function CVDocument({ data, template, theme, layout, isPremium, fontChoice }: CVDocumentProps) {
-  ensureFontsRegistered();
+  const [fontsReady, setFontsReady] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const { Font } = await import("@react-pdf/renderer");
+
+      // Register standard PDF fonts
+      Font.register({
+        family: "Helvetica",
+        fonts: [
+          { src: "Helvetica", fontWeight: "normal", fontStyle: "normal" },
+          { src: "Helvetica-Bold", fontWeight: "bold", fontStyle: "normal" },
+          { src: "Helvetica-Oblique", fontWeight: "normal", fontStyle: "italic" },
+          { src: "Helvetica-BoldOblique", fontWeight: "bold", fontStyle: "italic" },
+        ],
+      });
+
+      Font.register({
+        family: "Times-Roman",
+        fonts: [
+          { src: "Times-Roman", fontWeight: "normal", fontStyle: "normal" },
+          { src: "Times-Bold", fontWeight: "bold", fontStyle: "normal" },
+          { src: "Times-Italic", fontWeight: "normal", fontStyle: "italic" },
+          { src: "Times-BoldItalic", fontWeight: "bold", fontStyle: "italic" },
+        ],
+      });
+
+      Font.register({
+        family: "Courier",
+        fonts: [
+          { src: "Courier", fontWeight: "normal", fontStyle: "normal" },
+          { src: "Courier-Bold", fontWeight: "bold", fontStyle: "normal" },
+          { src: "Courier-Oblique", fontWeight: "normal", fontStyle: "italic" },
+          { src: "Courier-BoldOblique", fontWeight: "bold", fontStyle: "italic" },
+        ],
+      });
+
+      if (mounted) setFontsReady(true);
+    })();
+
+    return () => { mounted = false; };
+  }, []);
+
+  if (!fontsReady) {
+    return <div className="w-full h-96 bg-gray-50 animate-pulse rounded-lg" />;
+  }
+
   const TemplateComponent = templateMap[template.id] || ClassicProfessional;
 
   const fontOption = FONT_OPTIONS.find((f) => f.id === fontChoice) || FONT_OPTIONS[0];
