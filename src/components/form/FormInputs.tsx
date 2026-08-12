@@ -24,9 +24,29 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
   hint?: string;
+  validate?: (value: string) => string;
 }
 
-export function Input({ label, error, hint, className = "", ...props }: InputProps) {
+export function Input({ label, error, hint, validate, className = "", ...props }: InputProps) {
+  const [localError, setLocalError] = React.useState("");
+
+  const handleBlur = () => {
+    if (validate && props.value && typeof props.value === "string") {
+      setLocalError(validate(props.value));
+    } else if (props.required && (!props.value || (typeof props.value === "string" && props.value.trim() === ""))) {
+      setLocalError("This field is required");
+    } else {
+      setLocalError("");
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (localError) setLocalError("");
+    props.onChange?.(e);
+  };
+
+  const displayError = error || localError;
+
   return (
     <div className="mb-3">
       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -35,12 +55,14 @@ export function Input({ label, error, hint, className = "", ...props }: InputPro
       </label>
       <input
         className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 ${
-          error ? "border-red-500" : "border-gray-300"
+          displayError ? "border-red-500" : "border-gray-300"
         } ${className}`}
         {...props}
+        onBlur={handleBlur}
+        onChange={handleChange}
       />
-      {hint && !error && <p className="text-gray-400 text-[10px] mt-0.5">{hint}</p>}
-      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+      {hint && !displayError && <p className="text-gray-400 text-[10px] mt-0.5">{hint}</p>}
+      {displayError && <p className="text-red-500 text-[11px] mt-1">{displayError}</p>}
     </div>
   );
 }
@@ -63,6 +85,17 @@ function validateFormat(value: string, type: string): string {
     default:
       return "";
   }
+}
+
+// ── Date validation ──
+export function validateDate(value: string): string {
+  if (!value || value.trim() === "") return "";
+  const dateRegex = /^\d{4}-\d{2}$/;
+  if (!dateRegex.test(value)) return "Use format YYYY-MM (e.g. 2024-01)";
+  const [year, month] = value.split("-").map(Number);
+  if (year < 1900 || year > 2099) return "Year must be between 1900 and 2099";
+  if (month < 1 || month > 12) return "Month must be between 01 and 12";
+  return "";
 }
 
 // ── TextInput (auto-strips invalid characters) ──

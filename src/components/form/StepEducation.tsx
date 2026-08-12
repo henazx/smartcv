@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useCVStore } from "@/lib/store";
-import { TextInput, Input, NumberInput } from "./FormInputs";
+import { TextInput, Input, NumberInput, validateDate } from "./FormInputs";
 
 export function StepEducation() {
   const { data, addEducation, updateEducation, removeEducation } = useCVStore();
@@ -70,12 +70,14 @@ export function StepEducation() {
               required
               value={edu.startDate}
               onChange={(e) => updateEducation(edu.id, { startDate: e.target.value })}
+              validate={validateDate}
             />
             <Input
               label="End Date"
               type="month"
               value={edu.endDate}
               onChange={(e) => updateEducation(edu.id, { endDate: e.target.value })}
+              validate={validateDate}
             />
             <NumberInput
               label="GPA (optional)"

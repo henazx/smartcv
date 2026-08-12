@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from "react";
 import { useCVStore } from "@/lib/store";
-import { TextInput, Input } from "./FormInputs";
+import { TextInput, Input, validateDate } from "./FormInputs";
 import { suggestBulletImprovement } from "@/lib/contentAssistant";
 import type { BulletSuggestion } from "@/types";
 
@@ -125,8 +125,10 @@ export function StepExperience() {
             <Input
               label="Start Date"
               type="month"
+              required
               value={exp.startDate}
               onChange={(e) => updateExperience(exp.id, { startDate: e.target.value })}
+              validate={validateDate}
             />
             <div>
               <Input
@@ -135,6 +137,8 @@ export function StepExperience() {
                 value={exp.endDate}
                 disabled={exp.current}
                 onChange={(e) => updateExperience(exp.id, { endDate: e.target.value })}
+                validate={validateDate}
+                hint={exp.current ? "Currently working here" : undefined}
               />
               <label className="flex items-center gap-2 text-sm text-gray-600">
                 <input

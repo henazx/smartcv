@@ -8,12 +8,21 @@ interface Props {
   theme: CVTheme;
   layout: LayoutConfig;
   sectionStyle?: "underline" | "background-block" | "plain" | "boxed" | "bordered-left" | "numbered";
-  sectionsToShow?: string[];
 }
 
-export function DynamicSections({ data, theme, layout, sectionStyle = "underline", sectionsToShow }: Props) {
+export function DynamicSections({ data, theme, layout, sectionStyle = "underline" }: Props) {
   const s = makeStyles(theme, layout);
-  const active = sectionsToShow || data.activeSections;
+
+  // Always render sections that have data, regardless of activeSections config
+  const allSections: { id: string; data: boolean }[] = [
+    { id: "projects", data: data.projects.length > 0 },
+    { id: "awards", data: data.awards.length > 0 },
+    { id: "publications", data: data.publications.length > 0 },
+    { id: "volunteer", data: data.volunteer.length > 0 },
+    { id: "courses", data: data.courses.length > 0 },
+  ];
+
+  const sectionsToRender = allSections.filter((s) => s.data).map((s) => s.id);
 
   const renderSection = (sectionId: string) => {
     switch (sectionId) {
@@ -115,7 +124,7 @@ export function DynamicSections({ data, theme, layout, sectionStyle = "underline
     }
   };
 
-  return <>{active.map(renderSection)}</>;
+  return <>{sectionsToRender.map(renderSection)}</>;
 }
 
 function formatDate(dateStr: string): string {
