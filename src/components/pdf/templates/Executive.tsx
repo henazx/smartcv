@@ -76,7 +76,7 @@ export function Executive({ data, theme, layout }: Props) {
             </View>
           )}
 
-          <DynamicSections data={data} theme={theme} layout={layout} />
+          <DynamicSections data={data} theme={theme} layout={layout} omit={{ certifications: true }} />
         </View>
 
       </Page>

@@ -107,7 +107,7 @@ export function ClassicProfessional({ data, template, theme, layout }: Props) {
             </View>
           )}
 
-          <DynamicSections data={data} theme={theme} layout={layout} sectionStyle={template.sectionStyle} />
+          <DynamicSections data={data} theme={theme} layout={layout} sectionStyle={template.sectionStyle} omit={{ certifications: true, languages: true, references: true }} />
         </View>
 
       </Page>

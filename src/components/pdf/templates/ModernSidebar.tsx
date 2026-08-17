@@ -122,7 +122,7 @@ export function ModernSidebar({ data, theme, layout }: Props) {
               </View>
             )}
 
-            <DynamicSections data={data} theme={theme} layout={layout} />
+            <DynamicSections data={data} theme={theme} layout={layout} omit={{ certifications: true, languages: true }} />
           </View>
         </View>
 

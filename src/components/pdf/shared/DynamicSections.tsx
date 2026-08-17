@@ -8,21 +8,34 @@ interface Props {
   theme: CVTheme;
   layout: LayoutConfig;
   sectionStyle?: "underline" | "background-block" | "plain" | "boxed" | "bordered-left" | "numbered";
+  omit?: {
+    certifications?: boolean;
+    languages?: boolean;
+    references?: boolean;
+  };
 }
 
-export function DynamicSections({ data, theme, layout, sectionStyle = "underline" }: Props) {
+export function DynamicSections({ data, theme, layout, sectionStyle = "underline", omit = {} }: Props) {
   const s = makeStyles(theme, layout);
 
-  // Always render sections that have data, regardless of activeSections config
+  // Always render sections that have data, regardless of activeSections config.
+  // Core sections (certifications, languages, references) are rendered here too
+  // so no user data is ever dropped by a template that doesn't render them itself.
   const allSections: { id: string; data: boolean }[] = [
     { id: "projects", data: data.projects.length > 0 },
     { id: "awards", data: data.awards.length > 0 },
     { id: "publications", data: data.publications.length > 0 },
     { id: "volunteer", data: data.volunteer.length > 0 },
     { id: "courses", data: data.courses.length > 0 },
+    { id: "certifications", data: data.certifications.length > 0 && !omit.certifications },
+    { id: "languages", data: data.languages.length > 0 && !omit.languages },
+    {
+      id: "references",
+      data: data.includeReferences && (data.showAvailableUponRequest || data.references.length > 0) && !omit.references,
+    },
   ];
 
-  const sectionsToRender = allSections.filter((s) => s.data).map((s) => s.id);
+  const sectionsToRender = allSections.filter((sec) => sec.data).map((sec) => sec.id);
 
   const renderSection = (sectionId: string) => {
     switch (sectionId) {
@@ -116,6 +129,42 @@ export function DynamicSections({ data, theme, layout, sectionStyle = "underline
                 {course.description && <Text style={s.bodyText}>{course.description}</Text>}
               </View>
             ))}
+          </View>
+        ) : null;
+
+      case "certifications":
+        return data.certifications.length > 0 ? (
+          <View key="certifications" style={s.section}>
+            <SectionTitle title="Certifications" theme={theme} style={sectionStyle} />
+            {data.certifications.map((cert) => (
+              <View key={cert.id} style={s.item}>
+                <Text style={s.bodyText}>
+                  {cert.name}{cert.issuer ? ` - ${cert.issuer}` : ""}{cert.date ? ` (${cert.date})` : ""}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null;
+
+      case "languages":
+        return data.languages.length > 0 ? (
+          <View key="languages" style={s.section}>
+            <SectionTitle title="Languages" theme={theme} style={sectionStyle} />
+            <Text style={s.bodyText}>
+              {data.languages.map((l) => `${l.name} (${l.proficiency})`).join(" | ")}
+            </Text>
+          </View>
+        ) : null;
+
+      case "references":
+        return data.includeReferences ? (
+          <View key="references" style={s.section}>
+            <SectionTitle title="References" theme={theme} style={sectionStyle} />
+            <Text style={s.bodyText}>
+              {data.showAvailableUponRequest
+                ? "Available upon request"
+                : data.references.map((r) => `${r.name}${r.title ? ` - ${r.title}` : ""}`).join(", ")}
+            </Text>
           </View>
         ) : null;
 

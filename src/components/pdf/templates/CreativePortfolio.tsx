@@ -78,7 +78,7 @@ export function CreativePortfolio({ data, theme, layout }: Props) {
               </View>
             )}
 
-            <DynamicSections data={data} theme={theme} layout={layout} />
+            <DynamicSections data={data} theme={theme} layout={layout} omit={{ certifications: true, languages: true }} />
           </View>
 
           <View style={[s.sidebar, { backgroundColor: theme.colors.primary }]}>

@@ -78,7 +78,7 @@ export function ModernHeader({ data, theme, layout }: Props) {
             </View>
           )}
 
-          <DynamicSections data={data} theme={theme} layout={layout} />
+          <DynamicSections data={data} theme={theme} layout={layout} omit={{ languages: true }} />
         </View>
 
       </Page>
