@@ -73,10 +73,10 @@ export default function CareerTwinPage() {
     addCareerProject, updateCareerProject, removeCareerProject,
     setCareerInterests, setCareerTargetRoles, setCareerTargetIndustries, setCareerGoals,
     importCareerFromCV, populateFromCareerProfile, removeJobDescription, data,
-    resetCareerProfile,
     template, setTemplate, theme, setTheme, isPremium, fontChoice,
     layoutOverride, manualLayout,
-  } = useCVStore();
+    resetAll,
+} = useCVStore();
 
   const [hydrated, setHydrated] = useState(false);
   const [activeTab, setActiveTab] = useState<TwinSection>("overview");
@@ -183,6 +183,13 @@ export default function CareerTwinPage() {
             <Link href="/interview" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Interview</Link>
             <Link href="/readiness" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Readiness</Link>
             <Link href="/export" className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-sm">Export PDF</Link>
+            <button
+              onClick={() => setShowResetModal(true)}
+              className="px-3 py-2 border border-gray-200 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all"
+              title="Start fresh"
+            >
+              New
+            </button>
           </div>
         </div>
       </nav>
@@ -700,10 +707,10 @@ export default function CareerTwinPage() {
       <ConfirmModal
         open={showResetModal}
         title="Start Fresh?"
-        message="This will permanently delete all your Career Twin data. This cannot be undone."
+        message="This will permanently delete all your Career Twin and CV data. This cannot be undone."
         confirmLabel="Delete Everything"
         danger
-        onConfirm={() => { resetCareerProfile(); setShowResetModal(false); }}
+        onConfirm={() => { resetAll(); setShowResetModal(false); }}
         onCancel={() => setShowResetModal(false)}
       />
     </div>
