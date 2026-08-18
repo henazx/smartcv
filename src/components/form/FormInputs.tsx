@@ -206,12 +206,15 @@ export function PhoneInput({ label, countryCode, phoneNumber, onChangeCountryCod
   const expectedDigits = COUNTRY_CODES.find((c) => c.code === countryCode)?.digits || 9;
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let raw = e.target.value;
-    raw = raw.replace(/[^0-9]/g, "");
+    const input = e.target.value;
+    const hadNonDigits = /[^0-9]/.test(input);
+    let raw = input.replace(/[^0-9]/g, "");
     if (raw.length > 15) raw = raw.slice(0, 15);
     onChangePhoneNumber(raw);
 
-    if (raw.length > 0 && raw.length < expectedDigits) {
+    if (hadNonDigits) {
+      setLocalError("Only numbers allowed — letters and symbols removed");
+    } else if (raw.length > 0 && raw.length < expectedDigits) {
       setLocalError(`Expected ${expectedDigits} digits for ${countryCode}`);
     } else if (raw.length > expectedDigits) {
       setLocalError(`Too many digits — expected ${expectedDigits}`);
