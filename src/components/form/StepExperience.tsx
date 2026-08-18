@@ -108,7 +108,7 @@ export function StepExperience() {
             required
             value={exp.company}
             onChange={(val) => updateExperience(exp.id, { company: val })}
-            dataType="name"
+            dataType="text"
             placeholder="e.g. Ethio Telecom"
           />
 
@@ -117,8 +117,8 @@ export function StepExperience() {
             required
             value={exp.role}
             onChange={(val) => updateExperience(exp.id, { role: val })}
-            dataType="name"
-            placeholder="e.g. Software Engineer"
+            dataType="text"
+            placeholder="e.g. Software Engineer II"
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -165,15 +165,16 @@ export function StepExperience() {
               return (
                 <div key={bIdx} className="mb-3">
                   <div className="flex gap-2">
-                    <input
+                    <TextInput
                       value={bullet}
-                      onChange={(e) => {
+                      onChange={(val) => {
                         const newBullets = [...exp.bullets];
-                        newBullets[bIdx] = e.target.value;
+                        newBullets[bIdx] = val;
                         updateExperience(exp.id, { bullets: newBullets });
                       }}
+                      dataType="text"
                       placeholder="e.g. Increased sales by 25% in 6 months"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
+                      className="flex-1"
                     />
                     {suggestions.length > 0 && (
                       <button

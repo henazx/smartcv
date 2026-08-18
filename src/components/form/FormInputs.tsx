@@ -100,7 +100,7 @@ export function validateDate(value: string): string {
 
 // ── TextInput (auto-strips invalid characters) ──
 interface TextInputProps {
-  label: string;
+  label?: string;
   value: string;
   onChange: (value: string) => void;
   dataType?: "name" | "letters" | "text" | "phone" | "email" | "url";
@@ -110,9 +110,10 @@ interface TextInputProps {
   error?: string;
   maxLength?: number;
   className?: string;
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
 }
 
-export function TextInput({ label, value, onChange, dataType = "text", required, placeholder, hint, error, maxLength, className = "" }: TextInputProps) {
+export function TextInput({ label, value, onChange, dataType = "text", required, placeholder, hint, error, maxLength, className = "", onKeyDown }: TextInputProps) {
   const [localError, setLocalError] = React.useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,16 +136,19 @@ export function TextInput({ label, value, onChange, dataType = "text", required,
 
   return (
     <div className="mb-3">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-        {required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+          {required && <span className="text-red-500 ml-0.5">*</span>}
+        </label>
+      )}
       <input
         type={dataType === "email" ? "email" : dataType === "url" ? "url" : "text"}
         inputMode={dataType === "phone" ? "tel" : dataType === "email" ? "email" : dataType === "url" ? "url" : "text"}
         value={value}
         onChange={handleChange}
         onBlur={handleBlur}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 ${
           displayError ? "border-red-500" : "border-gray-300"

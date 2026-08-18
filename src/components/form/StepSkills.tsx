@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useCVStore } from "@/lib/store";
 import { ROLE_DATABASE } from "@/lib/cvProfile";
 import { getIndustrySkills } from "@/lib/contentAssistant";
+import { TextInput } from "./FormInputs";
 
 const proficiencyOptions = [
   { value: "", label: "No rating" },
@@ -73,14 +74,16 @@ export function StepSkills() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <input
+        <TextInput
+          label="Skill"
           value={newSkill}
-          onChange={(e) => setNewSkill(e.target.value)}
-          onKeyDown={handleKeyDown}
+          onChange={(val) => setNewSkill(val)}
+          dataType="text"
           placeholder="Type a skill and press Enter"
-          pattern="[A-Za-z0-9\s\+\#\.\/\-]+"
-          title="Skill name should only contain letters, numbers, +, #, ., /, or hyphens"
-          className="flex-1 min-w-[150px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
+          hint="Letters, numbers, +, #, ., /, - allowed"
+          className="flex-1 min-w-[150px]"
+          required
+          onKeyDown={handleKeyDown}
         />
         <select
           value={newCategory}

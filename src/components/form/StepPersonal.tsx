@@ -114,10 +114,10 @@ export function StepPersonal() {
         required
         value={personal.headline}
         onChange={(val) => setPersonal({ headline: val })}
-        dataType="name"
-        placeholder="e.g. Senior Software Engineer"
+        dataType="text"
+        placeholder="e.g. Senior Software Engineer II"
         maxLength={80}
-        hint="Letters and spaces only — keep it concise"
+        hint="Numbers and symbols allowed"
       />
 
       <TextInput
