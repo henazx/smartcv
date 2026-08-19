@@ -32,11 +32,42 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function TextInput({ value, onChange, placeholder, multiline }: { value: string; onChange: (v: string) => void; placeholder?: string; multiline?: boolean }) {
+type FieldType = "text" | "name" | "phone" | "email" | "url";
+
+const FIELD_PATTERNS: Record<Exclude<FieldType, "text">, RegExp> = {
+  name: /[^A-Za-z\s\-\'\.]/g,
+  phone: /[^0-9]/g,
+  email: /[^a-zA-Z0-9@\.\+\-_]/g,
+  url: /[^a-zA-Z0-9\.\:\/\-\_\?&=%#@\+]/g,
+};
+
+function TextInput({ value, onChange, placeholder, multiline, type = "text", error }: { value: string; onChange: (v: string) => void; placeholder?: string; multiline?: boolean; type?: FieldType; error?: string }) {
+  const handleChange = (raw: string) => {
+    if (type !== "text") {
+      onChange(raw.replace(FIELD_PATTERNS[type], ""));
+    } else {
+      onChange(raw);
+    }
+  };
+  const base = "w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:border-gray-400";
+  const borderCls = error ? " border-red-400" : " border-gray-200";
   if (multiline) {
-    return <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400 resize-none" rows={3} />;
+    return <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={`${base} resize-none ${borderCls}`} rows={3} />;
   }
-  return <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400" />;
+  return (
+    <div>
+      <input
+        type={type === "email" ? "email" : type === "url" ? "url" : type === "phone" ? "tel" : "text"}
+        inputMode={type === "phone" ? "numeric" : undefined}
+        value={value}
+        onChange={(e) => handleChange(e.target.value)}
+        onKeyDown={type === "phone" ? (e) => { const allowed = ["Backspace", "Delete", "Tab", "Escape", "Enter", "Home", "End", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]; const isNum = e.key >= "0" && e.key <= "9"; if (!isNum && !allowed.includes(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) e.preventDefault(); } : undefined}
+        placeholder={placeholder}
+        className={`${base} ${borderCls}`}
+      />
+      {error && <p className="text-red-500 text-[11px] mt-1">{error}</p>}
+    </div>
+  );
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -355,28 +386,28 @@ export default function CareerTwinPage() {
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Personal Information</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <Field label="Full Name">
-                    <TextInput value={cp.personal.fullName} onChange={(v) => updateCareerPersonal({ fullName: v })} placeholder="Abebe Kebede" />
+                    <TextInput type="name" value={cp.personal.fullName} onChange={(v) => updateCareerPersonal({ fullName: v })} placeholder="Abebe Kebede" />
                   </Field>
                   <Field label="Headline">
-                    <TextInput value={cp.personal.headline} onChange={(v) => updateCareerPersonal({ headline: v })} placeholder="Software Engineer" />
+                    <TextInput type="text" value={cp.personal.headline} onChange={(v) => updateCareerPersonal({ headline: v })} placeholder="Software Engineer" />
                   </Field>
                   <Field label="Email">
-                    <TextInput value={cp.personal.email} onChange={(v) => updateCareerPersonal({ email: v })} placeholder="abebe@email.com" />
+                    <TextInput type="email" value={cp.personal.email} onChange={(v) => updateCareerPersonal({ email: v })} placeholder="abebe@email.com" />
                   </Field>
                   <Field label="Phone">
-                    <TextInput value={cp.personal.phone} onChange={(v) => updateCareerPersonal({ phone: v })} placeholder="+251 91 234 5678" />
+                    <TextInput type="phone" value={cp.personal.phone} onChange={(v) => updateCareerPersonal({ phone: v })} placeholder="+251 91 234 5678" />
                   </Field>
                   <Field label="Location">
-                    <TextInput value={cp.personal.address} onChange={(v) => updateCareerPersonal({ address: v })} placeholder="Addis Ababa, Ethiopia" />
+                    <TextInput type="text" value={cp.personal.address} onChange={(v) => updateCareerPersonal({ address: v })} placeholder="Addis Ababa, Ethiopia" />
                   </Field>
                   <Field label="LinkedIn">
-                    <TextInput value={cp.personal.linkedIn} onChange={(v) => updateCareerPersonal({ linkedIn: v })} placeholder="linkedin.com/in/..." />
+                    <TextInput type="url" value={cp.personal.linkedIn} onChange={(v) => updateCareerPersonal({ linkedIn: v })} placeholder="linkedin.com/in/..." />
                   </Field>
                   <Field label="GitHub">
-                    <TextInput value={cp.personal.github} onChange={(v) => updateCareerPersonal({ github: v })} placeholder="github.com/..." />
+                    <TextInput type="url" value={cp.personal.github} onChange={(v) => updateCareerPersonal({ github: v })} placeholder="github.com/..." />
                   </Field>
                   <Field label="Website">
-                    <TextInput value={cp.personal.website} onChange={(v) => updateCareerPersonal({ website: v })} placeholder="https://..." />
+                    <TextInput type="url" value={cp.personal.website} onChange={(v) => updateCareerPersonal({ website: v })} placeholder="https://..." />
                   </Field>
                 </div>
                 <div className="mt-4">
