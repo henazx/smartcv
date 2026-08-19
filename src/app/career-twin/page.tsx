@@ -134,6 +134,7 @@ export default function CareerTwinPage() {
     template, setTemplate, theme, setTheme, isPremium, fontChoice,
     layoutOverride, manualLayout,
     resetAll, reorderSections, addSection, removeSection, setActiveSections, setFontChoice,
+    createCVFromProfile, versions, deleteVersion, duplicateVersion, loadVersionIntoEditor,
 } = useCVStore();
 
   const [hydrated, setHydrated] = useState(false);
@@ -150,6 +151,9 @@ export default function CareerTwinPage() {
   const [bulletSuggestions, setBulletSuggestions] = useState<Record<string, string[]>>({});
   const [suggestingBullets, setSuggestingBullets] = useState(false);
   const [photoError, setPhotoError] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [generateStage, setGenerateStage] = useState("");
+  const [showVersions, setShowVersions] = useState(false);
 
   useEffect(() => {
     hydrateFromStorage();
@@ -267,6 +271,24 @@ export default function CareerTwinPage() {
     reader.readAsDataURL(file);
   };
 
+  const handleGenerateCV = () => {
+    const targetRole = cp.targetRoles[0]?.trim() || cp.personal.headline.trim();
+    setGenerating(true);
+    setGenerateStage("Analyzing your profile and tailoring content to your target role...");
+    setTimeout(() => {
+      const version = createCVFromProfile("Generated CV", {
+        targetRole: targetRole || undefined,
+        targetIndustry: cp.targetIndustries[0],
+        autoImproveBullets: true,
+        maxBulletsPerRole: 5,
+      });
+      setGenerating(false);
+      if (version) {
+        setActiveTab("overview");
+      }
+    }, 350);
+  };
+
   const runBulletSuggestions = async (expId: string, index: number, text: string) => {
     if (!text.trim()) return;
     setSuggestingBullets(true);
@@ -312,6 +334,13 @@ export default function CareerTwinPage() {
             <Link href="/interview" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Interview</Link>
             <Link href="/readiness" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Readiness</Link>
             <Link href="/export" className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-sm">Export PDF</Link>
+            <button
+              onClick={() => setShowVersions(true)}
+              className="px-3 py-2 border border-gray-200 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all"
+              title="CV versions"
+            >
+              Versions
+            </button>
             <button
               onClick={() => setShowResetModal(true)}
               className="px-3 py-2 border border-gray-200 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all"
@@ -545,13 +574,19 @@ export default function CareerTwinPage() {
                         </div>
                       </div>
                       <div className="flex gap-2 pt-2">
-                        <Link href="/career-twin" onClick={(e) => { e.preventDefault(); }} className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl text-sm font-bold hover:from-gray-800 hover:to-gray-600 transition-all text-center">
-                          Generate CV
-                        </Link>
+                        <button onClick={handleGenerateCV} disabled={generating} className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl text-sm font-bold hover:from-gray-800 hover:to-gray-600 transition-all text-center disabled:opacity-50">
+                          {generating ? "Generating..." : "Generate CV"}
+                        </button>
                         <button onClick={() => setActiveTab("goals")} className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all">
                           Set Goals
                         </button>
                       </div>
+                      {generateStage && (
+                        <div className="pt-2 text-[11px] text-gray-500 flex items-center gap-2">
+                          <span className="inline-block w-3 h-3 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+                          {generateStage}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1067,6 +1102,48 @@ export default function CareerTwinPage() {
         onConfirm={() => { resetAll(); setShowResetModal(false); }}
         onCancel={() => setShowResetModal(false)}
       />
+
+      {/* Versions modal */}
+      {showVersions && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setShowVersions(false)}>
+          <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">CV Versions</h3>
+              <button onClick={() => setShowVersions(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">
+              Generated CVs are saved as versions and never overwrite your Career Twin profile. Generate a version from the Overview tab, then load it to export a PDF.
+            </p>
+            {versions.length === 0 ? (
+              <div className="text-center py-10 text-sm text-gray-500 bg-gray-50 rounded-xl">
+                No versions yet. Click <span className="font-semibold text-gray-700">Generate CV</span> on the Overview tab to create your first one.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {versions.map((v) => (
+                  <div key={v.id} className="border border-gray-200 rounded-xl p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="text-sm font-bold text-gray-900 truncate">{v.name}</div>
+                        <div className="text-[11px] text-gray-500">
+                          {v.targetRole ? `${v.targetRole} · ` : ""}
+                          {v.targetCompany ? `${v.targetCompany} · ` : ""}
+                          {new Date(v.updatedAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={() => { loadVersionIntoEditor(v.id); setShowVersions(false); }} className="px-2.5 py-1.5 text-xs font-bold bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-all">Load</button>
+                        <button onClick={() => duplicateVersion(v.id)} className="px-2 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg" title="Duplicate">Copy</button>
+                        <button onClick={() => deleteVersion(v.id)} className="px-2 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg" title="Delete">&times;</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

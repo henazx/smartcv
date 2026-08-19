@@ -5,6 +5,7 @@ import { CVData, CVTemplate, CVTheme, LayoutConfig, CVState, CVType, Application
 import { templates } from "@/lib/templates";
 import { themes } from "@/lib/themes";
 import { computeProfile } from "@/lib/cvProfile";
+import { generateCV } from "@/lib/cv/generator";
 
 const defaultPersonal = {
   fullName: "",
@@ -137,6 +138,10 @@ interface CVStore extends CVState {
   deleteVersion: (id: string) => void;
   duplicateVersion: (id: string) => void;
   getVersions: () => CVVersion[];
+  createCVFromProfile: (name: string, config?: Partial<import("@/lib/cv/generator").CVGenerateConfig>) => CVVersion | null;
+  createTailoredCV: (name: string, targetRole: string, targetCompany: string, jobDescription: string) => CVVersion | null;
+  renameVersion: (id: string, name: string) => void;
+  loadVersionIntoEditor: (id: string) => void;
   exportCV: () => string;
   importCV: (json: string) => boolean;
   downloadBackup: () => void;
@@ -630,6 +635,65 @@ export const useCVStore = create<CVStore>((set, get) => ({
   },
 
   getVersions: () => get().versions,
+
+  createCVFromProfile: (name, config = {}) => {
+    const { careerProfile, template, theme, fontChoice } = get();
+    const result = generateCV(careerProfile, {
+      name,
+      targetRole: config.targetRole,
+      targetCompany: config.targetCompany,
+      targetIndustry: config.targetIndustry,
+      jobDescription: config.jobDescription,
+      template: config.template || template,
+      theme: config.theme || theme,
+      fontChoice: config.fontChoice || fontChoice,
+      sections: config.sections,
+      summary: config.summary,
+      autoImproveBullets: config.autoImproveBullets ?? true,
+      maxBulletsPerRole: config.maxBulletsPerRole,
+    });
+    const newVersion: CVVersion = {
+      id: generateId(),
+      name,
+      data: JSON.parse(JSON.stringify(result.data)),
+      template: { ...result.template },
+      theme: { ...result.theme },
+      fontChoice: result.fontChoice,
+      targetRole: config.targetRole || careerProfile.targetRoles[0],
+      targetCompany: config.targetCompany,
+      targetIndustry: config.targetIndustry || careerProfile.targetIndustries[0],
+      jobDescription: config.jobDescription,
+      summary: result.data.personal.summary,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const { versions } = get();
+    const updated = [...versions, newVersion];
+    set({ versions: updated, activeVersionId: newVersion.id });
+    try { localStorage.setItem("smartcv-versions", JSON.stringify(updated)); } catch {}
+    return newVersion;
+  },
+
+  createTailoredCV: (name, targetRole, targetCompany, jobDescription) => {
+    return get().createCVFromProfile(name, {
+      targetRole,
+      targetCompany,
+      targetIndustry: targetCompany,
+      jobDescription,
+      autoImproveBullets: true,
+    });
+  },
+
+  renameVersion: (id, name) => {
+    const { versions } = get();
+    const updated = versions.map((v) => (v.id === id ? { ...v, name, updatedAt: new Date().toISOString() } : v));
+    set({ versions: updated });
+    try { localStorage.setItem("smartcv-versions", JSON.stringify(updated)); } catch {}
+  },
+
+  loadVersionIntoEditor: (id) => {
+    get().loadVersion(id);
+  },
 
   exportCV: () => {
     const { data, template, theme, fontChoice, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription } = get();

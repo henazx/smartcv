@@ -506,8 +506,14 @@ export interface CVVersion {
   data: CVData;
   template: CVTemplate;
   theme: CVTheme;
+  fontChoice?: FontChoice;
   createdAt: string;
   updatedAt: string;
+  targetRole?: string;
+  targetCompany?: string;
+  targetIndustry?: string;
+  jobDescription?: string;
+  summary?: string;
 }
 
 export interface CoverLetterParagraph {
