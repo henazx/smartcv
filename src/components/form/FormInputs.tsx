@@ -223,6 +223,18 @@ export function PhoneInput({ label, countryCode, phoneNumber, onChangeCountryCod
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const allowed = [
+      "Backspace", "Delete", "Tab", "Escape", "Enter",
+      "Home", "End", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
+    ];
+    const isNumber = e.key >= "0" && e.key <= "9";
+    const isModifier = e.ctrlKey || e.metaKey || e.altKey;
+    if (!isNumber && !allowed.includes(e.key) && !isModifier) {
+      e.preventDefault();
+    }
+  };
+
   const displayError = error || localError;
   const isEthiopia = countryCode === ethiopianPhoneFormat.countryCode;
   const displayHint = hint || (isEthiopia ? `Format: ${ethiopianPhoneFormat.example}` : undefined);
@@ -248,6 +260,7 @@ export function PhoneInput({ label, countryCode, phoneNumber, onChangeCountryCod
           inputMode="numeric"
           value={phoneNumber}
           onChange={handleNumberChange}
+          onKeyDown={handleKeyDown}
           placeholder={placeholder || (isEthiopia ? ethiopianPhoneFormat.example.replace("+251 ", "") : "9XX XXX XXXX")}
           className={`flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 ${
             displayError ? "border-red-500" : "border-gray-300"
