@@ -464,6 +464,9 @@ export interface CareerProfile {
     github: string;
     website: string;
     summary: string;
+    photoUrl: string | null;
+    photoSize: number;
+    photoPosition: "left" | "center" | "right";
   };
 
   education: Education[];

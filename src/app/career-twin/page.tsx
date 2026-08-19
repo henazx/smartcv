@@ -7,8 +7,11 @@ import { templates } from "@/lib/templates";
 import { themes as allThemes } from "@/lib/themes";
 import { computeLayout, analyzeContent } from "@/lib/layoutEngine";
 import { estimatePageCount } from "@/lib/atsScorer";
-import type { CVData, SectionId } from "@/types";
+import type { CVData, SectionId, FontChoice } from "@/types";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { suggestBulletImprovement, getIndustrySummaryTemplates, getIndustrySkills } from "@/lib/contentAssistant";
+import { ROLE_DATABASE } from "@/lib/cvProfile";
+import { FONT_OPTIONS } from "@/types";
 
 type TwinSection = "overview" | "personal" | "experience" | "education" | "skills" | "extras" | "goals" | "jobs";
 
@@ -22,6 +25,30 @@ const SECTION_TABS: { id: TwinSection; label: string; icon: string }[] = [
   { id: "goals", label: "Goals", icon: "\u2192" },
   { id: "jobs", label: "Jobs", icon: "\u2605" },
 ];
+
+const ALL_SECTIONS: { id: SectionId; label: string; icon: string }[] = [  { id: "summary", label: "Summary", icon: "S" },
+  { id: "experience", label: "Experience", icon: "E" },
+  { id: "education", label: "Education", icon: "D" },
+  { id: "skills", label: "Skills", icon: "K" },
+  { id: "projects", label: "Projects", icon: "J" },
+  { id: "languages", label: "Languages", icon: "L" },
+  { id: "certifications", label: "Certifications", icon: "C" },
+  { id: "awards", label: "Awards", icon: "A" },
+  { id: "publications", label: "Publications", icon: "U" },
+  { id: "volunteer", label: "Volunteer", icon: "V" },
+  { id: "courses", label: "Courses", icon: "T" },
+];
+
+function headlineIdeas(role: string): string[] {  const r = role.trim();
+  if (!r) return [];
+  const title = r.charAt(0).toUpperCase() + r.slice(1);
+  return [
+    title,
+    `Senior ${title}`,
+    `${title} | 5+ Years of Experience`,
+    `Experienced ${title} in Addis Ababa`,
+  ];
+}
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -106,7 +133,7 @@ export default function CareerTwinPage() {
     importCareerFromCV, populateFromCareerProfile, removeJobDescription, data,
     template, setTemplate, theme, setTheme, isPremium, fontChoice,
     layoutOverride, manualLayout,
-    resetAll,
+    resetAll, reorderSections, addSection, removeSection, setActiveSections, setFontChoice,
 } = useCVStore();
 
   const [hydrated, setHydrated] = useState(false);
@@ -119,6 +146,10 @@ export default function CareerTwinPage() {
   const [showResetModal, setShowResetModal] = useState(false);
   const [previewZoom, setPreviewZoom] = useState(100);
   const [mounted, setMounted] = useState(false);
+  const [showSectionManager, setShowSectionManager] = useState(false);
+  const [bulletSuggestions, setBulletSuggestions] = useState<Record<string, string[]>>({});
+  const [suggestingBullets, setSuggestingBullets] = useState(false);
+  const [photoError, setPhotoError] = useState("");
 
   useEffect(() => {
     hydrateFromStorage();
@@ -131,7 +162,13 @@ export default function CareerTwinPage() {
   const hasCvData = data.personal.fullName || data.experiences.length > 0 || data.skills.length > 0;
 
   // Compute preview data directly from career profile — no one-time copy needed
+  const activeSections = useMemo(() => {
+    const configured = data.activeSections && data.activeSections.length > 0 ? data.activeSections : (["summary", "experience", "education", "skills"] as SectionId[]);
+    return Array.from(new Set(configured));
+  }, [data.activeSections]);
+
   const previewData = useMemo<CVData>(() => {
+    const on = (id: SectionId) => activeSections.includes(id);
     return {
       personal: {
         fullName: cp.personal.fullName,
@@ -139,30 +176,30 @@ export default function CareerTwinPage() {
         email: cp.personal.email,
         phone: cp.personal.phone,
         address: cp.personal.address,
-        summary: cp.personal.summary,
-        photoUrl: null,
-        photoSize: 60,
-        photoPosition: "center" as const,
+        summary: on("summary") ? cp.personal.summary : "",
+        photoUrl: cp.personal.photoUrl,
+        photoSize: cp.personal.photoSize,
+        photoPosition: cp.personal.photoPosition,
         linkedIn: cp.personal.linkedIn,
         github: cp.personal.github,
         website: cp.personal.website,
       },
-      experiences: cp.experiences.map((e) => ({ ...e })),
-      education: cp.education.map((e) => ({ ...e })),
-      skills: cp.skills.map((s) => ({ ...s })),
-      languages: cp.languages.map((l) => ({ ...l })),
-      certifications: cp.certifications.map((c) => ({ ...c })),
-      projects: cp.projects.map((p) => ({ ...p })),
-      awards: cp.awards.map((a) => ({ ...a })),
-      publications: cp.publications.map((p) => ({ ...p })),
+      experiences: on("experience") ? cp.experiences.map((e) => ({ ...e })) : [],
+      education: on("education") ? cp.education.map((e) => ({ ...e })) : [],
+      skills: on("skills") ? cp.skills.map((s) => ({ ...s })) : [],
+      languages: on("languages") ? cp.languages.map((l) => ({ ...l })) : [],
+      certifications: on("certifications") ? cp.certifications.map((c) => ({ ...c })) : [],
+      projects: on("projects") ? cp.projects.map((p) => ({ ...p })) : [],
+      awards: on("awards") ? cp.awards.map((a) => ({ ...a })) : [],
+      publications: on("publications") ? cp.publications.map((p) => ({ ...p })) : [],
       references: [],
-      volunteer: cp.volunteer.map((v) => ({ ...v })),
-      courses: cp.courses.map((c) => ({ ...c })),
+      volunteer: on("volunteer") ? cp.volunteer.map((v) => ({ ...v })) : [],
+      courses: on("courses") ? cp.courses.map((c) => ({ ...c })) : [],
       includeReferences: false,
       showAvailableUponRequest: true,
-      activeSections: ["summary", "experience", "education", "skills"] as SectionId[],
+      activeSections,
     };
-  }, [cp]);
+  }, [cp, activeSections]);
 
   // Also sync to CV data store so Export/Job Match can use it
   const populatedRef = useRef(false);
@@ -172,6 +209,17 @@ export default function CareerTwinPage() {
       populatedRef.current = true;
     }
   }, [hasData, hydrated, populateFromCareerProfile]);
+
+  // Keep CV store activeSections in sync with Career Twin section manager
+  const lastSectionSync = useRef<string | null>(null);
+  useEffect(() => {
+    if (!hydrated) return;
+    const key = activeSections.join(",");
+    if (key !== lastSectionSync.current) {
+      lastSectionSync.current = key;
+      setActiveSections(activeSections);
+    }
+  }, [hydrated, activeSections, setActiveSections]);
 
   // CV Preview layout
   const autoLayout = useMemo(() => computeLayout(previewData, template), [previewData, template]);
@@ -195,6 +243,56 @@ export default function CareerTwinPage() {
   if (!hydrated) {
     return <div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" /></div>;
   }
+
+  const roleKey = cp.targetRoles[0]?.toLowerCase().trim() || "";
+  const roleRec = roleKey ? ROLE_DATABASE[roleKey] : null;
+  const industrySuggestions = cp.targetIndustries[0] ? getIndustrySkills(cp.targetIndustries[0]) : [];
+
+  const handlePhotoUpload = (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Please choose an image file (JPG or PNG).");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      setPhotoError("Image is too large. Please choose an image under 4MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      updateCareerPersonal({ photoUrl: reader.result as string });
+      setPhotoError("");
+    };
+    reader.onerror = () => setPhotoError("Failed to read the image. Please try again.");
+    reader.readAsDataURL(file);
+  };
+
+  const runBulletSuggestions = async (expId: string, index: number, text: string) => {
+    if (!text.trim()) return;
+    setSuggestingBullets(true);
+    const jobDesc = cp.jobDescriptions[0]?.description || "";
+    const results = suggestBulletImprovement(text, jobDesc);
+    setBulletSuggestions((prev) => ({ ...prev, [`${expId}-${index}`]: results.map((r) => r.improved) }));
+    setSuggestingBullets(false);
+  };
+
+  const applySuggestedBullet = (expId: string, index: number, improved: string) => {
+    const bullets = [...cp.experiences];
+    const target = bullets.find((e) => e.id === expId);
+    if (!target) return;
+    const newBullets = [...target.bullets];
+    newBullets[index] = improved;
+    updateCareerExperience(expId, { bullets: newBullets });
+    setBulletSuggestions((prev) => {
+      const next = { ...prev };
+      delete next[`${expId}-${index}`];
+      return next;
+    });
+  };
+
+  const reorderActiveSection = (fromIndex: number, toIndex: number) => {
+    reorderSections(fromIndex, toIndex);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 animate-fade-in">
@@ -302,6 +400,86 @@ export default function CareerTwinPage() {
                 <div className="text-[10px] text-gray-400 mt-1.5">{theme.name}</div>
               </div>
 
+              {/* Font Selector */}
+              <div className="mt-3 px-3 py-3 bg-gray-50 rounded-xl">
+                <div className="text-xs font-semibold text-gray-600 mb-2">Font</div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {FONT_OPTIONS.map((f) => (
+                    <button
+                      key={f.id}
+                      onClick={() => setFontChoice(f.id as FontChoice)}
+                      className={`px-2 py-1.5 rounded-lg text-xs transition-all ${fontChoice === f.id ? "bg-gray-900 text-white shadow-sm" : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300"}`}
+                    >
+                      {f.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section Manager */}
+              <div className="mt-3 px-3 py-3 bg-gray-50 rounded-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-xs font-semibold text-gray-600">CV Sections</div>
+                  <button onClick={() => setShowSectionManager(!showSectionManager)} className="text-[10px] text-gray-500 hover:text-gray-900 font-semibold">
+                    {showSectionManager ? "Hide" : "Manage"}
+                  </button>
+                </div>
+                {showSectionManager ? (
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-semibold text-gray-500 mb-1">In your CV (drag order)</div>
+                    {activeSections.map((secId, idx) => {
+                      const sec = ALL_SECTIONS.find((s) => s.id === secId);
+                      return (
+                        <div key={secId} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white border border-gray-200">
+                          <button
+                            onClick={() => removeSection(secId)}
+                            className="w-4 h-4 rounded flex items-center justify-center text-[9px] font-bold bg-gray-900 text-white"
+                            title="Remove from CV"
+                          >
+                            ✓
+                          </button>
+                          <span className="flex-1 text-[11px] font-medium text-gray-800">{sec?.label || secId}</span>
+                          <button
+                            onClick={() => idx > 0 && reorderActiveSection(idx, idx - 1)}
+                            disabled={idx === 0}
+                            className="text-gray-400 hover:text-gray-700 disabled:opacity-30 text-[10px] px-0.5"
+                            title="Move up"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            onClick={() => idx < activeSections.length - 1 && reorderActiveSection(idx, idx + 1)}
+                            disabled={idx === activeSections.length - 1}
+                            className="text-gray-400 hover:text-gray-700 disabled:opacity-30 text-[10px] px-0.5"
+                            title="Move down"
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      );
+                    })}
+                    {activeSections.length === 0 && <p className="text-[10px] text-gray-400 px-1">No sections selected.</p>}
+                    <div className="text-[10px] font-semibold text-gray-500 mt-2 mb-1">Available to add</div>
+                    <div className="flex flex-wrap gap-1">
+                      {ALL_SECTIONS.filter((s) => !activeSections.includes(s.id)).map((sec) => (
+                        <button
+                          key={sec.id}
+                          onClick={() => addSection(sec.id)}
+                          className="px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-[10px] hover:bg-blue-100 transition-all"
+                        >
+                          + {sec.label}
+                        </button>
+                      ))}
+                    </div>
+                    {ALL_SECTIONS.every((s) => activeSections.includes(s.id)) && (
+                      <p className="text-[10px] text-gray-400 mt-1.5">All sections are in your CV.</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-gray-400">{activeSections.length} sections shown</p>
+                )}
+              </div>
+
               {/* Start Fresh */}
               {hasData && (
                 <button onClick={() => setShowResetModal(true)} className="mt-3 w-full px-3 py-2.5 bg-red-50 text-red-600 rounded-xl text-xs font-semibold hover:bg-red-100 transition-all text-left">
@@ -384,6 +562,54 @@ export default function CareerTwinPage() {
             {activeTab === "personal" && (
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/80 p-6 shadow-sm">
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Personal Information</h2>
+
+                {/* Photo upload */}
+                <div className="mb-6 flex items-center gap-4">
+                  {cp.personal.photoUrl ? (
+                    <div className="relative">
+                      <img src={cp.personal.photoUrl} alt="Profile" className="w-20 h-20 rounded-2xl object-cover border border-gray-200 shadow-sm" />
+                      <button
+                        onClick={() => updateCareerPersonal({ photoUrl: null })}
+                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center shadow hover:bg-red-600"
+                        title="Remove photo"
+                      >
+                        x
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 rounded-2xl bg-gray-100 border border-dashed border-gray-300 flex items-center justify-center text-gray-400">
+                      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" /></svg>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Profile Photo</label>
+                    <div className="flex items-center gap-2">
+                      <label className="cursor-pointer px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-semibold hover:bg-gray-800 transition-all">
+                        {cp.personal.photoUrl ? "Change Photo" : "Upload Photo"}
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); e.target.value = ""; }} />
+                      </label>
+                      <select
+                        value={cp.personal.photoPosition}
+                        onChange={(e) => updateCareerPersonal({ photoPosition: e.target.value as "left" | "center" | "right" })}
+                        className="px-2 py-1.5 text-xs border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-gray-400"
+                        title="Photo position"
+                      >
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                      </select>
+                      <input
+                        type="range" min={40} max={100} value={cp.personal.photoSize}
+                        onChange={(e) => updateCareerPersonal({ photoSize: parseInt(e.target.value, 10) })}
+                        className="flex-1 accent-gray-900"
+                        title="Photo size"
+                      />
+                    </div>
+                    {photoError && <p className="text-red-500 text-[11px] mt-1">{photoError}</p>}
+                    <p className="text-[10px] text-gray-400 mt-0.5">JPG or PNG, under 4MB. Shows in supported templates & PDF.</p>
+                  </div>
+                </div>
+
                 <div className="grid md:grid-cols-2 gap-4">
                   <Field label="Full Name">
                     <TextInput type="name" value={cp.personal.fullName} onChange={(v) => updateCareerPersonal({ fullName: v })} placeholder="Abebe Kebede" />
@@ -410,10 +636,50 @@ export default function CareerTwinPage() {
                     <TextInput type="url" value={cp.personal.website} onChange={(v) => updateCareerPersonal({ website: v })} placeholder="https://..." />
                   </Field>
                 </div>
+
+                {/* Headline suggestions */}
+                {roleRec && (
+                  <div className="mt-4">
+                    <p className="text-xs font-semibold text-gray-600 mb-2">Headline ideas for &ldquo;{cp.targetRoles[0]}&rdquo;</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {headlineIdeas(cp.targetRoles[0]).map((h, i) => (
+                        <button
+                          key={i}
+                          onClick={() => updateCareerPersonal({ headline: h })}
+                          className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-[11px] hover:bg-blue-100 transition-all text-left"
+                        >
+                          {h}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Summary suggestions */}
                 <div className="mt-4">
                   <Field label="Professional Summary">
                     <TextInput value={cp.personal.summary} onChange={(v) => updateCareerPersonal({ summary: v })} placeholder="Brief overview of your professional background..." multiline />
                   </Field>
+                  {cp.targetIndustries[0] && (() => {
+                    const templatesList = getIndustrySummaryTemplates(cp.targetIndustries[0]);
+                    if (templatesList.length === 0) return null;
+                    return (
+                      <div className="mt-2">
+                        <p className="text-[11px] text-gray-500 mb-1.5">Suggested summaries for {cp.targetIndustries[0]}:</p>
+                        <div className="space-y-1.5">
+                          {templatesList.map((t, i) => (
+                            <button
+                              key={i}
+                              onClick={() => updateCareerPersonal({ summary: t })}
+                              className="w-full text-left px-3 py-2 bg-amber-50 text-amber-900 rounded-lg text-[11px] hover:bg-amber-100 transition-all"
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -452,12 +718,36 @@ export default function CareerTwinPage() {
                       </div>
                       <div className="mt-3">
                         <Field label="Key Achievements">
-                          {exp.bullets.map((bullet, i) => (
-                            <div key={i} className="flex gap-2 mb-2">
-                              <input type="text" value={bullet} onChange={(e) => { const b = [...exp.bullets]; b[i] = e.target.value; updateCareerExperience(exp.id, { bullets: b }); }} placeholder="Describe an achievement..." className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400" />
-                              <button onClick={() => { const b = exp.bullets.filter((_, idx) => idx !== i); updateCareerExperience(exp.id, { bullets: b }); }} className="text-xs text-gray-400 hover:text-red-500 px-2">x</button>
-                            </div>
-                          ))}
+                          {exp.bullets.map((bullet, i) => {
+                            const suggestionKey = `${exp.id}-${i}`;
+                            const suggestions = bulletSuggestions[suggestionKey] || [];
+                            return (
+                              <div key={i} className="mb-2">
+                                <div className="flex gap-2">
+                                  <input type="text" value={bullet} onChange={(e) => { const b = [...exp.bullets]; b[i] = e.target.value; updateCareerExperience(exp.id, { bullets: b }); }} placeholder="Describe an achievement..." className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400" />
+                                  <button
+                                    onClick={() => runBulletSuggestions(exp.id, i, bullet)}
+                                    disabled={suggestingBullets || !bullet.trim()}
+                                    className="flex-shrink-0 px-2 py-2 rounded-lg text-[10px] font-bold border border-gray-200 bg-white text-gray-400 hover:text-blue-600 hover:border-blue-200 disabled:opacity-40 transition-all"
+                                    title="Get AI rewrite suggestions"
+                                  >
+                                    ✨
+                                  </button>
+                                  <button onClick={() => { const b = exp.bullets.filter((_, idx) => idx !== i); updateCareerExperience(exp.id, { bullets: b }); }} className="text-xs text-gray-400 hover:text-red-500 px-2">x</button>
+                                </div>
+                                {suggestions.length > 0 && (
+                                  <div className="mt-1.5 space-y-1">
+                                    {suggestions.map((s, si) => (
+                                      <div key={si} className="flex items-center gap-2 px-2.5 py-1.5 bg-blue-50 rounded-lg">
+                                        <span className="flex-1 text-[11px] text-blue-900">{s}</span>
+                                        <button onClick={() => applySuggestedBullet(exp.id, i, s)} className="flex-shrink-0 px-2 py-1 bg-blue-600 text-white rounded-lg text-[10px] font-bold hover:bg-blue-700 transition-all">Use</button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                           <button onClick={() => updateCareerExperience(exp.id, { bullets: [...exp.bullets, ""] })} className="text-xs text-gray-500 hover:text-gray-700 font-medium">+ Add bullet</button>
                         </Field>
                       </div>
@@ -528,6 +818,36 @@ export default function CareerTwinPage() {
                   ))}
                 </div>
                 {cp.skills.length === 0 && <p className="text-gray-400 text-xs mt-2">No skills added yet.</p>}
+
+                {(roleRec || industrySuggestions.length > 0) && (
+                  <div className="mt-4">
+                    <p className="text-xs font-semibold text-gray-600 mb-2">Suggested skills {cp.targetRoles[0] ? `for ${cp.targetRoles[0]}` : ""}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        ...(roleRec?.skills || []),
+                        ...industrySuggestions.filter((s) => !(roleRec?.skills || []).includes(s)),
+                      ].filter((s) => !cp.skills.some((existing) => existing.name.toLowerCase() === s.toLowerCase()))
+                        .slice(0, 12)
+                        .map((s, i) => (
+                          <button
+                            key={i}
+                            onClick={() => addCareerSkill(s)}
+                            className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-[11px] hover:bg-blue-100 transition-all"
+                          >
+                            + {s}
+                          </button>
+                        ))}
+                    </div>
+                    {cp.skills.length >= 5 && (
+                      <button
+                        onClick={() => { roleRec?.skills.slice(0, 8).forEach((s) => { if (!cp.skills.some((e) => e.name.toLowerCase() === s.toLowerCase())) addCareerSkill(s); }); industrySuggestions.slice(0, 6).forEach((s) => { if (!cp.skills.some((e) => e.name.toLowerCase() === s.toLowerCase())) addCareerSkill(s); }); }}
+                        className="mt-2 text-xs text-gray-500 hover:text-gray-700 font-medium"
+                      >
+                        + Add all suggested skills
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -698,6 +1018,9 @@ export default function CareerTwinPage() {
                   <p className="text-[10px] text-gray-400 mt-0.5">Page {pageCount} &middot; {contentAnalysis.contentDensity}</p>
                 </div>
                 <div className="flex items-center gap-2">
+                  <Link href="/export" className="px-2.5 py-1.5 bg-gray-900 text-white rounded-lg text-[10px] font-bold hover:bg-gray-800 transition-all">
+                    Download PDF
+                  </Link>
                   <button onClick={() => setPreviewZoom(Math.max(50, previewZoom - 10))} className="w-6 h-6 rounded bg-gray-100 text-gray-600 text-xs font-bold hover:bg-gray-200">-</button>
                   <span className="text-[10px] text-gray-400 w-8 text-center font-medium">{previewZoom}%</span>
                   <button onClick={() => setPreviewZoom(Math.min(150, previewZoom + 10))} className="w-6 h-6 rounded bg-gray-100 text-gray-600 text-xs font-bold hover:bg-gray-200">+</button>
