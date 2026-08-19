@@ -59,18 +59,24 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-type FieldType = "text" | "name" | "phone" | "email" | "url";
+type FieldType = "text" | "name" | "phone" | "email" | "url" | "date" | "number";
 
-const FIELD_PATTERNS: Record<Exclude<FieldType, "text">, RegExp> = {
+const FIELD_PATTERNS: Record<Exclude<FieldType, "text" | "date">, RegExp> = {
   name: /[^A-Za-z\s\-\'\.]/g,
   phone: /[^0-9]/g,
   email: /[^a-zA-Z0-9@\.\+\-_]/g,
   url: /[^a-zA-Z0-9\.\:\/\-\_\?&=%#@\+]/g,
+  number: /[^0-9.]/g,
 };
 
 function TextInput({ value, onChange, placeholder, multiline, type = "text", error }: { value: string; onChange: (v: string) => void; placeholder?: string; multiline?: boolean; type?: FieldType; error?: string }) {
   const handleChange = (raw: string) => {
-    if (type !== "text") {
+    if (type === "number") {
+      let v = raw.replace(FIELD_PATTERNS.number, "");
+      const dot = v.indexOf(".");
+      if (dot !== -1) v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, "");
+      onChange(v);
+    } else if (type !== "text" && type !== "date") {
       onChange(raw.replace(FIELD_PATTERNS[type], ""));
     } else {
       onChange(raw);
@@ -84,8 +90,8 @@ function TextInput({ value, onChange, placeholder, multiline, type = "text", err
   return (
     <div>
       <input
-        type={type === "email" ? "email" : type === "url" ? "url" : type === "phone" ? "tel" : "text"}
-        inputMode={type === "phone" ? "numeric" : undefined}
+        type={type === "email" ? "email" : type === "url" ? "url" : type === "phone" ? "tel" : type === "date" ? "month" : "text"}
+        inputMode={type === "phone" ? "numeric" : type === "number" ? "decimal" : undefined}
         value={value}
         onChange={(e) => handleChange(e.target.value)}
         onKeyDown={type === "phone" ? (e) => { const allowed = ["Backspace", "Delete", "Tab", "Escape", "Enter", "Home", "End", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]; const isNum = e.key >= "0" && e.key <= "9"; if (!isNum && !allowed.includes(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) e.preventDefault(); } : undefined}
@@ -130,7 +136,7 @@ export default function CareerTwinPage() {
     addCareerCertification, updateCareerCertification, removeCareerCertification,
     addCareerProject, updateCareerProject, removeCareerProject,
     setCareerInterests, setCareerTargetRoles, setCareerTargetIndustries, setCareerGoals,
-    importCareerFromCV, populateFromCareerProfile, removeJobDescription, data,
+    importCareerFromCV, populateFromCareerProfile, syncCareerProfileToData, removeJobDescription, data,
     template, setTemplate, theme, setTheme, fontChoice,
     layoutOverride, manualLayout,
     resetAll, reorderSections, addSection, removeSection, setActiveSections, setFontChoice,
@@ -213,6 +219,14 @@ export default function CareerTwinPage() {
       populatedRef.current = true;
     }
   }, [hasData, hydrated, populateFromCareerProfile]);
+
+  // Keep store data in sync with Career Twin profile so Export/Job Match
+  // always reflect the latest edits (persisted to localStorage)
+  useEffect(() => {
+    if (hydrated) {
+      syncCareerProfileToData();
+    }
+  }, [cp, hydrated, syncCareerProfileToData]);
 
   // Keep CV store activeSections in sync with Career Twin section manager
   const lastSectionSync = useRef<string | null>(null);
@@ -745,10 +759,10 @@ export default function CareerTwinPage() {
                           <TextInput value={exp.role} onChange={(v) => updateCareerExperience(exp.id, { role: v })} placeholder="Software Engineer" />
                         </Field>
                         <Field label="Start Date">
-                          <TextInput value={exp.startDate} onChange={(v) => updateCareerExperience(exp.id, { startDate: v })} placeholder="2020" />
+                          <TextInput type="date" value={exp.startDate} onChange={(v) => updateCareerExperience(exp.id, { startDate: v })} placeholder="2020-01" />
                         </Field>
                         <Field label="End Date">
-                          <TextInput value={exp.endDate} onChange={(v) => updateCareerExperience(exp.id, { endDate: v })} placeholder="Present" />
+                          <TextInput type="date" value={exp.endDate} onChange={(v) => updateCareerExperience(exp.id, { endDate: v })} placeholder="2024-12" />
                         </Field>
                       </div>
                       <div className="mt-3">
@@ -821,13 +835,13 @@ export default function CareerTwinPage() {
                           <TextInput value={edu.field} onChange={(v) => updateCareerEducation(edu.id, { field: v })} placeholder="Computer Science" />
                         </Field>
                         <Field label="GPA">
-                          <TextInput value={edu.gpa} onChange={(v) => updateCareerEducation(edu.id, { gpa: v })} placeholder="3.8" />
+                          <TextInput type="number" value={edu.gpa} onChange={(v) => updateCareerEducation(edu.id, { gpa: v })} placeholder="3.8" />
                         </Field>
-                        <Field label="Start Year">
-                          <TextInput value={edu.startDate} onChange={(v) => updateCareerEducation(edu.id, { startDate: v })} placeholder="2016" />
+                        <Field label="Start Date">
+                          <TextInput type="date" value={edu.startDate} onChange={(v) => updateCareerEducation(edu.id, { startDate: v })} placeholder="2016-09" />
                         </Field>
-                        <Field label="End Year">
-                          <TextInput value={edu.endDate} onChange={(v) => updateCareerEducation(edu.id, { endDate: v })} placeholder="2020" />
+                        <Field label="End Date">
+                          <TextInput type="date" value={edu.endDate} onChange={(v) => updateCareerEducation(edu.id, { endDate: v })} placeholder="2020-06" />
                         </Field>
                       </div>
                     </div>
@@ -920,7 +934,7 @@ export default function CareerTwinPage() {
                       <input type="text" value={cert.name} onChange={(e) => updateCareerCertification(cert.id, { name: e.target.value })} placeholder="Certification" className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400" />
                       <input type="text" value={cert.issuer} onChange={(e) => updateCareerCertification(cert.id, { issuer: e.target.value })} placeholder="Issuer" className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400" />
                       <div className="flex gap-1">
-                        <input type="text" value={cert.date} onChange={(e) => updateCareerCertification(cert.id, { date: e.target.value })} placeholder="Date" className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400" />
+                        <input type="month" value={cert.date} onChange={(e) => updateCareerCertification(cert.id, { date: e.target.value })} placeholder="2024" className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-400" />
                         <button onClick={() => removeCareerCertification(cert.id)} className="text-xs text-gray-400 hover:text-red-500 px-1">x</button>
                       </div>
                     </div>

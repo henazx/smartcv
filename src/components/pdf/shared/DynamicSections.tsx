@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "@react-pdf/renderer";
 import { CVData, CVTheme, LayoutConfig } from "@/types";
 import { SectionTitle } from "./SectionTitle";
+import { formatDate, formatDateRange } from "@/lib/dates";
 
 interface Props {
   data: CVData;
@@ -174,20 +175,6 @@ export function DynamicSections({ data, theme, layout, sectionStyle = "underline
   };
 
   return <>{sectionsToRender.map(renderSection)}</>;
-}
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return "";
-  const [year, month] = dateStr.split("-");
-  if (!year) return "";
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return month ? `${months[parseInt(month, 10) - 1]} ${year}` : year;
-}
-
-function formatDateRange(start: string, end: string): string {
-  const s = formatDate(start);
-  const e = end ? formatDate(end) : "Present";
-  return s && e ? `${s} — ${e}` : s || e;
 }
 
 function makeStyles(theme: CVTheme, layout: LayoutConfig) {

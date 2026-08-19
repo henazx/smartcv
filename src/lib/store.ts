@@ -71,6 +71,39 @@ const defaultCareerProfile: CareerProfile = {
   jobDescriptions: [],
 };
 
+function buildDataFromCareerProfile(cp: CareerProfile, activeSections?: SectionId[]): CVData {
+  return {
+    personal: {
+      fullName: cp.personal.fullName,
+      headline: cp.personal.headline,
+      email: cp.personal.email,
+      phone: cp.personal.phone,
+      address: cp.personal.address,
+      summary: cp.personal.summary,
+      photoUrl: cp.personal.photoUrl || null,
+      photoSize: cp.personal.photoSize || 60,
+      photoPosition: (cp.personal.photoPosition as "left" | "center" | "right") || "center",
+      linkedIn: cp.personal.linkedIn,
+      github: cp.personal.github,
+      website: cp.personal.website,
+    },
+    experiences: JSON.parse(JSON.stringify(cp.experiences)),
+    education: JSON.parse(JSON.stringify(cp.education)),
+    skills: JSON.parse(JSON.stringify(cp.skills)),
+    languages: JSON.parse(JSON.stringify(cp.languages)),
+    certifications: JSON.parse(JSON.stringify(cp.certifications)),
+    projects: JSON.parse(JSON.stringify(cp.projects)),
+    awards: JSON.parse(JSON.stringify(cp.awards)),
+    publications: JSON.parse(JSON.stringify(cp.publications)),
+    references: [],
+    volunteer: JSON.parse(JSON.stringify(cp.volunteer)),
+    courses: JSON.parse(JSON.stringify(cp.courses)),
+    includeReferences: false,
+    showAvailableUponRequest: true,
+    activeSections: activeSections || (["summary", "experience", "education", "skills"] as SectionId[]),
+  };
+}
+
 interface CVStore extends CVState {
   setData: (data: Partial<CVData>) => void;
   setPersonal: (personal: Partial<CVData["personal"]>) => void;
@@ -187,6 +220,7 @@ interface CVStore extends CVState {
   resetCareerProfile: () => void;
   importCareerFromCV: () => void;
   populateFromCareerProfile: () => void;
+  syncCareerProfileToData: () => void;
   saveJobDescription: (jd: SavedJobDescription) => void;
   removeJobDescription: (id: string) => void;
   setCoverLetter: (cl: CoverLetter | null) => void;
@@ -994,36 +1028,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
 
   populateFromCareerProfile: () => set((state) => {
     const cp = state.careerProfile;
-    const mergedData: CVData = {
-      personal: {
-        fullName: cp.personal.fullName,
-        headline: cp.personal.headline,
-        email: cp.personal.email,
-        phone: cp.personal.phone,
-        address: cp.personal.address,
-        summary: cp.personal.summary,
-        photoUrl: cp.personal.photoUrl || null,
-        photoSize: cp.personal.photoSize || 60,
-        photoPosition: (cp.personal.photoPosition as "left" | "center" | "right") || "center",
-        linkedIn: cp.personal.linkedIn,
-        github: cp.personal.github,
-        website: cp.personal.website,
-      },
-      experiences: JSON.parse(JSON.stringify(cp.experiences)),
-      education: JSON.parse(JSON.stringify(cp.education)),
-      skills: JSON.parse(JSON.stringify(cp.skills)),
-      languages: JSON.parse(JSON.stringify(cp.languages)),
-      certifications: JSON.parse(JSON.stringify(cp.certifications)),
-      projects: JSON.parse(JSON.stringify(cp.projects)),
-      awards: JSON.parse(JSON.stringify(cp.awards)),
-      publications: JSON.parse(JSON.stringify(cp.publications)),
-      references: [],
-      volunteer: JSON.parse(JSON.stringify(cp.volunteer)),
-      courses: JSON.parse(JSON.stringify(cp.courses)),
-      includeReferences: false,
-      showAvailableUponRequest: true,
-      activeSections: ["summary", "experience", "education", "skills"] as SectionId[],
-    };
+    const mergedData: CVData = buildDataFromCareerProfile(cp);
     return {
       data: mergedData,
       targetJobTitle: cp.targetRoles[0] || state.targetJobTitle,
@@ -1031,6 +1036,14 @@ export const useCVStore = create<CVStore>((set, get) => ({
       ...pushHistory(state.history, state.historyIndex, mergedData),
     };
   }),
+
+  syncCareerProfileToData: () => {
+    const state = get();
+    const cp = state.careerProfile;
+    const mergedData: CVData = buildDataFromCareerProfile(cp, state.data.activeSections);
+    set({ data: mergedData, targetJobTitle: cp.targetRoles[0] || state.targetJobTitle, targetIndustry: cp.targetIndustries[0] || state.targetIndustry });
+    debouncedSave(get);
+  },
 
   saveJobDescription: (jd) => set((state) => {
     const cp = { ...state.careerProfile, jobDescriptions: [...state.careerProfile.jobDescriptions, jd], updatedAt: new Date().toISOString() };

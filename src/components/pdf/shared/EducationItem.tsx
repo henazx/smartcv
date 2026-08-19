@@ -1,19 +1,13 @@
 import React from "react";
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 import { CVTheme, Education } from "@/types";
+import { formatDate } from "@/lib/dates";
 
 interface EducationItemProps {
   education: Education;
   theme: CVTheme;
   fontScale?: number;
   isLast?: boolean;
-}
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return "";
-  const [year, month] = dateStr.split("-");
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${months[parseInt(month, 10) - 1]} ${year}`;
 }
 
 export function EducationItem({ education, theme, fontScale = 1, isLast = false }: EducationItemProps) {
