@@ -502,7 +502,7 @@ export default function Home() {
             <Link href="/applications" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all hidden sm:inline-flex">Applications</Link>
             <Link href="/interview" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all hidden sm:inline-flex">Interview</Link>
             <Link href="/readiness" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all hidden sm:inline-flex">Readiness</Link>
-            <Link href="/premium" className="px-3 py-1.5 text-xs font-semibold text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-all">Premium</Link>
+            <Link href="/premium" className="px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">Features</Link>
             <Link href="/career-twin" className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-lg text-sm font-semibold hover:from-gray-800 hover:to-gray-600 transition-all shadow-sm">Build My Career Twin</Link>
           </div>
         </div>
@@ -621,7 +621,7 @@ export default function Home() {
                 </div>
                 <div className="p-3">
                   <h3 className="font-semibold text-xs text-gray-900 group-hover:text-gray-700 transition-colors">{t.name}</h3>
-                  <p className="text-[10px] text-gray-400 mt-0.5 capitalize">{t.category} {t.premium ? "- Premium" : ""}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5 capitalize">{t.category}</p>
                   <div className="flex flex-wrap gap-0.5 mt-1.5">
                     {t.bestFor.slice(0, 2).map((item) => (
                       <span key={item} className="text-[9px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full">{item}</span>
@@ -733,7 +733,7 @@ export default function Home() {
             <Link href="/applications" className="hover:text-gray-600 transition-colors">Applications</Link>
             <Link href="/interview" className="hover:text-gray-600 transition-colors">Interview</Link>
             <Link href="/readiness" className="hover:text-gray-600 transition-colors">Readiness</Link>
-            <Link href="/premium" className="hover:text-gray-600 transition-colors">Premium</Link>
+            <Link href="/premium" className="hover:text-gray-600 transition-colors">Features</Link>
           </div>
           <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap justify-center">
             <Link href="/cv-generator-ethiopia" className="hover:text-gray-600 transition-colors">CV Generator Ethiopia</Link>

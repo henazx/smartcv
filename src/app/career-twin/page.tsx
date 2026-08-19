@@ -131,7 +131,7 @@ export default function CareerTwinPage() {
     addCareerProject, updateCareerProject, removeCareerProject,
     setCareerInterests, setCareerTargetRoles, setCareerTargetIndustries, setCareerGoals,
     importCareerFromCV, populateFromCareerProfile, removeJobDescription, data,
-    template, setTemplate, theme, setTheme, isPremium, fontChoice,
+    template, setTemplate, theme, setTheme, fontChoice,
     layoutOverride, manualLayout,
     resetAll, reorderSections, addSection, removeSection, setActiveSections, setFontChoice,
     createCVFromProfile, versions, deleteVersion, duplicateVersion, loadVersionIntoEditor,
@@ -1065,7 +1065,7 @@ export default function CareerTwinPage() {
                 {mounted ? (
                   <div style={{ height: "min(500px, 60vh)", transform: `scale(${previewZoom / 100})`, transformOrigin: "top center" }}>
                     <PdfViewerWrapper width="100%" height="100%" showToolbar={false}>
-                      <PdfDocumentLoader data={previewData} template={template} theme={theme} layout={finalLayout} isPremium={isPremium} fontChoice={fontChoice} />
+                      <PdfDocumentLoader data={previewData} template={template} theme={theme} layout={finalLayout} fontChoice={fontChoice} />
                     </PdfViewerWrapper>
                   </div>
                 ) : (

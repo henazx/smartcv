@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 import { CVData, CVTheme, LayoutConfig } from "@/types";
 import { ContactInfo } from "../shared/ContactInfo";
@@ -6,7 +6,7 @@ import { ExperienceItem } from "../shared/ExperienceItem";
 import { EducationItem } from "../shared/EducationItem";
 import { DynamicSections } from "../shared/DynamicSections";
 
-interface Props { data: CVData; theme: CVTheme; layout: LayoutConfig; isPremium: boolean; }
+interface Props { data: CVData; theme: CVTheme; layout: LayoutConfig; }
 
 export function CompactATS({ data, theme, layout }: Props) {
   const s = makeStyles(theme, layout);

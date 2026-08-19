@@ -69,7 +69,7 @@ export default function FreeCvMakerPage() {
         <section className="mb-12">
           <h2 className="text-xl font-bold text-gray-900 mb-3">Why is SmartCV Free?</h2>
           <p className="text-gray-600 leading-relaxed">
-            We believe every Ethiopian job seeker deserves access to professional CV tools. SmartCV is free to use because everyone deserves a fair chance at their dream job. Premium features are available for those who want advanced tools, but the core CV builder is always free.
+            We believe every Ethiopian job seeker deserves access to professional CV tools. SmartCV is completely free to use because everyone deserves a fair chance at their dream job. All templates, colors, and PDF exports are available to everyone.
           </p>
         </section>
 

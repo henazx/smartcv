@@ -15,11 +15,10 @@ interface PdfDocProps {
   template: CVTemplate;
   theme: CVTheme;
   layout: LayoutConfig;
-  isPremium: boolean;
   fontChoice: FontChoice;
 }
 
-function PdfPreview({ data, template, theme, layout, isPremium, fontChoice }: PdfDocProps) {
+function PdfPreview({ data, template, theme, layout, fontChoice }: PdfDocProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [Viewer, setViewer] = useState<React.ComponentType<any> | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,12 +32,12 @@ function PdfPreview({ data, template, theme, layout, isPremium, fontChoice }: Pd
   if (!Viewer || !Doc) return <div className="w-full h-full bg-gray-50 animate-pulse rounded-lg flex items-center justify-center"><div className="w-8 h-8 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" /></div>;
   return (
     <Viewer width="100%" height="100%" showToolbar={false}>
-      <Doc data={data} template={template} theme={theme} layout={layout} isPremium={isPremium} fontChoice={fontChoice} />
+      <Doc data={data} template={template} theme={theme} layout={layout} fontChoice={fontChoice} />
     </Viewer>
   );
 }
 
-function DownloadButton({ data, template, theme, layout, isPremium, fontChoice, fileName }: PdfDocProps & { fileName: string }) {
+function DownloadButton({ data, template, theme, layout, fontChoice, fileName }: PdfDocProps & { fileName: string }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [LinkComp, setLinkComp] = useState<React.ComponentType<any> | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,7 +51,7 @@ function DownloadButton({ data, template, theme, layout, isPremium, fontChoice, 
   if (!LinkComp || !Doc) return <div className="flex-1 px-5 sm:px-6 py-3 sm:py-3.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl font-bold text-center text-sm flex items-center justify-center gap-2 min-h-[44px] opacity-50">Loading PDF...</div>;
   return (
     <LinkComp
-      document={<Doc data={data} template={template} theme={theme} layout={layout} isPremium={isPremium} fontChoice={fontChoice} />}
+      document={<Doc data={data} template={template} theme={theme} layout={layout} fontChoice={fontChoice} />}
       fileName={fileName}
       className="group flex-1 px-5 sm:px-6 py-3 sm:py-3.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl font-bold text-center hover:from-gray-800 hover:to-gray-600 transition-all shadow-lg hover:shadow-xl text-sm flex items-center justify-center gap-2 min-h-[44px]"
     >
@@ -103,28 +102,14 @@ function CoverLetterDownloadButton() {
 }
 
 export default function ExportPage() {
-  const { data, template, theme, layoutOverride, manualLayout, isPremium, setIsPremium, hydrateFromStorage, resetAll, fontChoice } = useCVStore();
+  const { data, template, theme, layoutOverride, manualLayout, hydrateFromStorage, resetAll, fontChoice } = useCVStore();
   const [hydrated, setHydrated] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
-  const [checkingPayment, setCheckingPayment] = useState(false);
-  const [paymentError, setPaymentError] = useState(false);
 
   useEffect(() => {
     hydrateFromStorage();
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("payment") === "success") {
-      setIsPremium(true);
-      localStorage.setItem("smartcv-premium", "true");
-    }
     setHydrated(true);
-  }, [hydrateFromStorage, setIsPremium]);
-
-  useEffect(() => {
-    if (hydrated) {
-      const premiumFlag = localStorage.getItem("smartcv-premium");
-      if (premiumFlag === "true") setIsPremium(true);
-    }
-  }, [hydrated, setIsPremium]);
+  }, [hydrateFromStorage]);
 
   const autoLayout = useMemo(() => computeLayout(data, template), [data, template]);
   const finalLayout = layoutOverride ? { ...autoLayout, ...manualLayout } : autoLayout;
@@ -203,7 +188,7 @@ export default function ExportPage() {
           <div className="grid lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8">
               <div className="rounded-2xl overflow-hidden border border-gray-200/80 shadow-lg bg-white" style={{ height: "min(500px, 60vh)" }}>
-                <PdfPreview data={data} template={template} theme={theme} layout={finalLayout} isPremium={isPremium} fontChoice={fontChoice} />
+                <PdfPreview data={data} template={template} theme={theme} layout={finalLayout} fontChoice={fontChoice} />
               </div>
 
               <div className="mt-5">
@@ -211,7 +196,7 @@ export default function ExportPage() {
               </div>
 
               <div className="mt-5 flex flex-col sm:flex-row gap-3">
-                <DownloadButton data={data} template={template} theme={theme} layout={finalLayout} isPremium={isPremium} fontChoice={fontChoice} fileName={generateFileName()} />
+                <DownloadButton data={data} template={template} theme={theme} layout={finalLayout} fontChoice={fontChoice} fileName={generateFileName()} />
                 <CoverLetterDownloadButton />
 
                 <button
@@ -221,23 +206,6 @@ export default function ExportPage() {
                   Start New CV
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                 </button>
-
-                {!isPremium && (
-                  <button
-                    onClick={async () => {
-                      setCheckingPayment(true);
-                      try {
-                        const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: data.personal.email || "user@smartcv.app", amount: 500 }) });
-                        const result = await res.json();
-                        if (result.checkout_url) window.location.href = result.checkout_url;
-                      } catch { setPaymentError(true); } finally { setCheckingPayment(false); }
-                    }}
-                    className="flex-1 px-5 sm:px-6 py-3 sm:py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-bold text-center hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg hover:shadow-xl text-sm flex items-center justify-center gap-2 min-h-[44px]"
-                  >
-                    {checkingPayment ? "Processing..." : "Unlock Premium (500 ETB)"}
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                  </button>
-                )}
               </div>
             </div>
 
@@ -286,25 +254,6 @@ export default function ExportPage() {
                   </div>
                 </div>
               </div>
-
-              {!isPremium && (
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 border border-gray-200/80 rounded-2xl p-4 sm:p-5 text-xs text-gray-600 relative overflow-hidden shadow-sm">
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-gray-100 to-transparent rounded-bl-full" />
-                  <p className="relative"><strong className="text-gray-900">Free tier:</strong> All templates, 2 fonts, PDF export. Premium removes watermark + unlocks more.</p>
-                </div>
-              )}
-
-              {isPremium && (
-                <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-800 rounded-2xl p-4 sm:p-5 text-xs text-gray-300 shadow-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center">
-                      <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                    </div>
-                    <strong className="text-white font-bold">Premium unlocked!</strong>
-                  </div>
-                  <p>All templates, all colors, watermark-free PDFs.</p>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -322,16 +271,6 @@ export default function ExportPage() {
           window.location.href = "/build";
         }}
         onCancel={() => setShowResetModal(false)}
-      />
-
-      <ConfirmModal
-        open={paymentError}
-        title="Payment Failed"
-        message="Something went wrong with the payment. Please try again or contact support."
-        confirmLabel="OK"
-        cancelLabel="Cancel"
-        onConfirm={() => setPaymentError(false)}
-        onCancel={() => setPaymentError(false)}
       />
     </div>
   );

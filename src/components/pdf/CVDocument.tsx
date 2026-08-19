@@ -21,7 +21,6 @@ interface CVDocumentProps {
   template: CVTemplate;
   theme: CVTheme;
   layout: LayoutConfig;
-  isPremium: boolean;
   fontChoice: FontChoice;
 }
 
@@ -30,7 +29,6 @@ interface TemplateProps {
   template: CVTemplate;
   theme: CVTheme;
   layout: LayoutConfig;
-  isPremium: boolean;
 }
 
 const templateMap: Record<string, React.FC<TemplateProps>> = {
@@ -48,7 +46,7 @@ const templateMap: Record<string, React.FC<TemplateProps>> = {
   "elegant-editorial": ElegantEditorial,
 };
 
-export function CVDocument({ data, template, theme, layout, isPremium, fontChoice }: CVDocumentProps) {
+export function CVDocument({ data, template, theme, layout, fontChoice }: CVDocumentProps) {
   const [fontsReady, setFontsReady] = useState(false);
 
   useEffect(() => {
@@ -115,7 +113,6 @@ export function CVDocument({ data, template, theme, layout, isPremium, fontChoic
       template={template}
       theme={themedTheme}
       layout={layout}
-      isPremium={isPremium}
     />
   );
 }

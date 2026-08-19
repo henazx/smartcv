@@ -118,7 +118,6 @@ interface CVStore extends CVState {
   setLayoutOverride: (v: boolean) => void;
   setManualLayout: (layout: Partial<LayoutConfig>) => void;
   setManualSectionOrder: (order: string[]) => void;
-  setIsPremium: (v: boolean) => void;
   setStep: (step: number) => void;
   setActiveSection: (section: SectionId | null) => void;
   setCvType: (cvType: CVType) => void;
@@ -207,8 +206,8 @@ function debouncedSave(get: () => CVStore) {
   if (_saveTimer) clearTimeout(_saveTimer);
   _saveTimer = setTimeout(() => {
     try {
-      const { data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice, careerProfile } = get();
-      localStorage.setItem("smartcv-data-v2", JSON.stringify({ data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice }));
+      const { data, template, theme, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice, careerProfile } = get();
+      localStorage.setItem("smartcv-data-v2", JSON.stringify({ data, template, theme, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice }));
       localStorage.setItem("smartcv-career-profile", JSON.stringify(careerProfile));
     } catch {}
   }, 300);
@@ -232,7 +231,6 @@ export const useCVStore = create<CVStore>((set, get) => ({
   layoutOverride: false,
   manualLayout: {},
   manualSectionOrder: [],
-  isPremium: false,
   step: 0,
   activeSection: null,
   cvType: null,
@@ -537,7 +535,6 @@ export const useCVStore = create<CVStore>((set, get) => ({
   setLayoutOverride: (v) => set({ layoutOverride: v }),
   setManualLayout: (layout) => set((state) => ({ manualLayout: { ...state.manualLayout, ...layout } })),
   setManualSectionOrder: (order) => set({ manualSectionOrder: order }),
-  setIsPremium: (v) => set({ isPremium: v }),
   setStep: (step) => set({ step }),
   setActiveSection: (activeSection) => set({ activeSection }),
 
@@ -1101,7 +1098,6 @@ export const useCVStore = create<CVStore>((set, get) => ({
           template: parsed.template || templates[0],
           theme: parsed.theme || themes[0],
           fontChoice: parsed.fontChoice || "helvetica",
-          isPremium: parsed.isPremium || false,
           cvType,
           applicationGoal,
           targetJobTitle,
@@ -1134,8 +1130,8 @@ export const useCVStore = create<CVStore>((set, get) => ({
 
   saveToStorage: () => {
     try {
-      const { data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice, careerProfile, coverLetter, applications } = get();
-      localStorage.setItem("smartcv-data-v2", JSON.stringify({ data, template, theme, isPremium, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice }));
+      const { data, template, theme, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice, careerProfile, coverLetter, applications } = get();
+      localStorage.setItem("smartcv-data-v2", JSON.stringify({ data, template, theme, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice }));
       localStorage.setItem("smartcv-career-profile", JSON.stringify(careerProfile));
       if (coverLetter) localStorage.setItem("smartcv-cover-letter", JSON.stringify(coverLetter));
       localStorage.setItem("smartcv-applications", JSON.stringify(applications));
@@ -1146,7 +1142,6 @@ export const useCVStore = create<CVStore>((set, get) => ({
     try {
       localStorage.removeItem("smartcv-data-v2");
       localStorage.removeItem("smartcv-versions");
-      localStorage.removeItem("smartcv-premium");
       localStorage.removeItem("smartcv-career-profile");
       localStorage.removeItem("smartcv-cover-letter");
       localStorage.removeItem("smartcv-applications");
@@ -1159,7 +1154,6 @@ export const useCVStore = create<CVStore>((set, get) => ({
       layoutOverride: false,
       manualLayout: {},
       manualSectionOrder: [],
-      isPremium: false,
       step: 0,
       activeSection: null,
       cvType: null,

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 import { CVData, CVTheme, LayoutConfig } from "@/types";
 import { SectionTitle } from "../shared/SectionTitle";
@@ -8,7 +8,7 @@ import { SkillDisplay } from "../shared/SkillDisplay";
 import { PhotoBadge } from "../shared/PhotoBadge";
 import { DynamicSections } from "../shared/DynamicSections";
 
-interface Props { data: CVData; theme: CVTheme; layout: LayoutConfig; isPremium: boolean; }
+interface Props { data: CVData; theme: CVTheme; layout: LayoutConfig; }
 
 export function ElegantEditorial({ data, theme, layout }: Props) {
   const s = makeStyles(theme, layout);

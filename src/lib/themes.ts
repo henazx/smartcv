@@ -207,7 +207,7 @@ export const themes: CVTheme[] = [
       elementGap: 6,
       padding: 30,
     },
-    premium: true,
+    premium: false,
   },
   {
     id: "teal",
@@ -233,7 +233,7 @@ export const themes: CVTheme[] = [
       elementGap: 6,
       padding: 30,
     },
-    premium: true,
+    premium: false,
   },
   {
     id: "rose",
@@ -259,12 +259,16 @@ export const themes: CVTheme[] = [
       elementGap: 6,
       padding: 30,
     },
-    premium: true,
+    premium: false,
   },
 ];
 
 export function getThemeById(id: string): CVTheme {
   return themes.find((t) => t.id === id) || themes[0];
+}
+
+export function getThemes(): CVTheme[] {
+  return themes;
 }
 
 export function getFreeThemes(): CVTheme[] {

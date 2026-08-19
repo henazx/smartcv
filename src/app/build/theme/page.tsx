@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useCVStore } from "@/lib/store";
 import { templates, filterTemplates, type TemplateCategoryFilter } from "@/lib/templates";
-import { getFreeThemes, getPremiumThemes } from "@/lib/themes";
+import { getThemes } from "@/lib/themes";
 import { computeLayout, recommendTemplates } from "@/lib/layoutEngine";
 import { CVDocument } from "@/components/pdf/CVDocument";
 import { PDFViewer } from "@react-pdf/renderer";
@@ -22,7 +22,7 @@ const categories: { label: string; value: TemplateCategoryFilter }[] = [
 ];
 
 export default function ThemePage() {
-  const { data, template, setTemplate, theme, setTheme, isPremium, profile, hydrateFromStorage, fontChoice } = useCVStore();
+  const { data, template, setTemplate, theme, setTheme, profile, hydrateFromStorage, fontChoice } = useCVStore();
   const [hydrated, setHydrated] = useState(false);
   const [activeCategory, setActiveCategory] = useState<TemplateCategoryFilter>("all");
   const [showThemes, setShowThemes] = useState(false);
@@ -135,21 +135,17 @@ export default function ThemePage() {
                   {filteredTemplates.map((t) => (
                     <button
                       key={t.id}
-                      onClick={() => (t.premium ? isPremium : true) && setTemplate(t)}
+                      onClick={() => setTemplate(t)}
                       className={`group w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 ${
                         template.id === t.id
                           ? "border-gray-900 bg-white shadow-lg"
-                          : t.premium && !isPremium
-                            ? "border-gray-200 bg-gray-50/50 opacity-50 cursor-not-allowed"
-                            : "border-gray-200/80 hover:border-gray-300 bg-white/80 hover:shadow-md"
+                          : "border-gray-200/80 hover:border-gray-300 bg-white/80 hover:shadow-md"
                       }`}
-                      disabled={t.premium && !isPremium}
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1 min-w-0">
                           <div className="font-bold text-sm text-gray-900 flex items-center gap-2">
                             {t.name}
-                            {t.premium && <span className="text-[10px] bg-gradient-to-r from-amber-400 to-amber-500 text-white px-1.5 py-0.5 rounded-full font-bold shadow-sm">PRO</span>}
                             {t.atsSafe && <span className="text-[10px] bg-gray-900 text-white px-1.5 py-0.5 rounded-full font-bold">ATS</span>}
                           </div>
                           <p className="text-xs text-gray-500 mt-1 leading-relaxed">{t.description}</p>
@@ -171,9 +167,9 @@ export default function ThemePage() {
               </>
             ) : (
               <>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Free Colors</h3>
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Color Themes</h3>
                 <div className="space-y-2">
-                  {getFreeThemes().map((t) => (
+                  {getThemes().map((t) => (
                     <button
                       key={t.id}
                       onClick={() => setTheme(t)}
@@ -185,30 +181,6 @@ export default function ThemePage() {
                       <div className="flex-1">
                         <span className="text-sm font-bold text-gray-900">{t.name}</span>
                       </div>
-                      {theme.id === t.id && (
-                        <div className="w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center shadow-md">
-                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-8 mb-3">Premium Colors</h3>
-                <div className="space-y-2">
-                  {getPremiumThemes().map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => isPremium && setTheme(t)}
-                      className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center gap-4 ${
-                        theme.id === t.id ? "border-gray-900 bg-white shadow-lg" : isPremium ? "border-gray-200/80 hover:border-gray-300 bg-white/80 hover:shadow-md" : "border-gray-200 bg-gray-50/50 opacity-50 cursor-not-allowed"
-                      }`}
-                      disabled={!isPremium}
-                    >
-                      <div className="w-8 h-8 rounded-xl shadow-inner" style={{ backgroundColor: t.colors.primary }} />
-                      <div className="flex-1">
-                        <span className="text-sm font-bold text-gray-900">{t.name}</span>
-                      </div>
-                      {!isPremium && <span className="text-[10px] bg-gradient-to-r from-amber-400 to-amber-500 text-white px-2 py-0.5 rounded-full font-bold shadow-sm">PRO</span>}
                       {theme.id === t.id && (
                         <div className="w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center shadow-md">
                           <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
@@ -230,7 +202,6 @@ export default function ThemePage() {
                     template={template}
                     theme={theme}
                     layout={layout}
-                    isPremium={isPremium}
                     fontChoice={fontChoice}
                   />
                 </PDFViewer>

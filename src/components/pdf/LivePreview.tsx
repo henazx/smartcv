@@ -39,7 +39,7 @@ function PdfDocumentLoader(props: any) {
 }
 
 export function LivePreview() {
-  const { data, template, theme, layoutOverride, manualLayout, isPremium, fontChoice } = useCVStore();
+  const { data, template, theme, layoutOverride, manualLayout, fontChoice } = useCVStore();
   const [zoom, setZoom] = useState(100);
   const [mounted, setMounted] = useState(false);
 
@@ -87,7 +87,7 @@ export function LivePreview() {
               }}
             >
               <PdfViewerWrapper width="100%" height="100%" showToolbar={false}>
-                <PdfDocumentLoader data={data} template={template} theme={theme} layout={finalLayout} isPremium={isPremium} fontChoice={fontChoice} />
+                <PdfDocumentLoader data={data} template={template} theme={theme} layout={finalLayout} fontChoice={fontChoice} />
               </PdfViewerWrapper>
             </div>
           </PreviewErrorBoundary>

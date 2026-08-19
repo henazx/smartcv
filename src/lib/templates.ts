@@ -134,7 +134,7 @@ export const templates: CVTemplate[] = [
     supportsPhoto: true,
     supportsSidebar: true,
     atsSafe: false,
-    premium: true,
+    premium: false,
     visualStyles: ["editorial", "two-column", "creative"],
   },
   {
@@ -151,7 +151,7 @@ export const templates: CVTemplate[] = [
     supportsPhoto: true,
     supportsSidebar: true,
     atsSafe: false,
-    premium: true,
+    premium: false,
     visualStyles: ["creative", "editorial", "two-column"],
   },
   {
@@ -202,7 +202,7 @@ export const templates: CVTemplate[] = [
     supportsPhoto: true,
     supportsSidebar: false,
     atsSafe: false,
-    premium: true,
+    premium: false,
     visualStyles: ["elegant", "editorial", "creative"],
   },
 ];

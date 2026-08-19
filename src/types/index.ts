@@ -556,7 +556,6 @@ export interface CVState {
   layoutOverride: boolean;
   manualLayout: Partial<LayoutConfig>;
   manualSectionOrder: string[];
-  isPremium: boolean;
   step: number;
   activeSection: SectionId | null;
   cvType: CVType | null;

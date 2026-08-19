@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 import { CVData, CVTemplate, CVTheme, LayoutConfig } from "@/types";
 import { SectionTitle } from "../shared/SectionTitle";
@@ -13,7 +13,6 @@ interface Props {
   template: CVTemplate;
   theme: CVTheme;
   layout: LayoutConfig;
-  isPremium: boolean;
 }
 
 export function ClassicProfessional({ data, template, theme, layout }: Props) {

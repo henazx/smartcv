@@ -41,7 +41,7 @@ export default function CvGeneratorEthiopiaPage() {
         name: "Is SmartCV free to use?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. SmartCV is free to start. Build your Career Twin, match jobs, and generate your CV at no cost. Premium features are available for advanced templates and tools.",
+          text: "Yes. SmartCV is completely free. Build your Career Twin, match jobs, and generate your CV at no cost. All templates, colors, and PDF exports are available to everyone.",
         },
       },
     ],
@@ -183,7 +183,7 @@ export default function CvGeneratorEthiopiaPage() {
               </div>
               <div className="bg-white rounded-xl border border-gray-200 p-5">
                 <h3 className="font-semibold text-gray-900 mb-2">Is SmartCV free to use?</h3>
-                <p className="text-sm text-gray-600">Yes. SmartCV is free to start. Build your Career Twin, match jobs, and generate your CV at no cost. Premium features are available for advanced templates and tools.</p>
+                <p className="text-sm text-gray-600">Yes. SmartCV is completely free. Build your Career Twin, match jobs, and generate your CV at no cost. All templates, colors, and PDF exports are available to everyone.</p>
               </div>
             </div>
           </section>
