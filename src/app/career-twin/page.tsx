@@ -274,27 +274,50 @@ export default function CareerTwinPage() {
     reader.readAsDataURL(file);
   };
 
-  const validateField = (key: string, value: string, kind: "email" | "phone" | "gpa") => {
+  const setFieldError = (key: string, msg: string) => setFieldErrors((p) => ({ ...p, [key]: msg }));
+  const clearFieldError = (key: string) => setFieldErrors((p) => { const n = { ...p }; delete n[key]; return n; });
+
+  const validateField = (key: string, value: string, kind: "email" | "phone" | "gpa" | "linkedin" | "github" | "website") => {
     if (!value.trim()) return;
     if (kind === "email") {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
-        setFieldErrors((p) => ({ ...p, [key]: "Enter a valid email address" }));
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+        clearFieldError(key);
       } else {
-        setFieldErrors((p) => { const n = { ...p }; delete n[key]; return n; });
+        setFieldError(key, "Enter a valid email address");
       }
     } else if (kind === "phone") {
       const digits = value.replace(/\D/g, "");
       if (digits.length < 7) {
-        setFieldErrors((p) => ({ ...p, [key]: "Phone number looks too short" }));
+        setFieldError(key, "Phone number looks too short");
+      } else if (digits.length > 15) {
+        setFieldError(key, "Phone number looks too long");
       } else {
-        setFieldErrors((p) => { const n = { ...p }; delete n[key]; return n; });
+        clearFieldError(key);
       }
     } else if (kind === "gpa") {
       const gpa = parseFloat(value);
       if (!Number.isNaN(gpa) && (gpa < 0 || gpa > 4.3)) {
-        setFieldErrors((p) => ({ ...p, [key]: "GPA should be between 0 and 4.3" }));
+        setFieldError(key, "GPA should be between 0 and 4.3");
       } else {
-        setFieldErrors((p) => { const n = { ...p }; delete n[key]; return n; });
+        clearFieldError(key);
+      }
+    } else if (kind === "linkedin") {
+      if (/linkedin\.com\/in\//i.test(value.trim())) {
+        clearFieldError(key);
+      } else {
+        setFieldError(key, "Enter a LinkedIn URL like linkedin.com/in/yourname");
+      }
+    } else if (kind === "github") {
+      if (/github\.com/i.test(value.trim())) {
+        clearFieldError(key);
+      } else {
+        setFieldError(key, "Enter a GitHub URL like github.com/yourname");
+      }
+    } else if (kind === "website") {
+      if (/^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}(\/\S*)?$/i.test(value.trim())) {
+        clearFieldError(key);
+      } else {
+        setFieldError(key, "Enter a valid website URL");
       }
     }
   };
@@ -691,13 +714,13 @@ export default function CareerTwinPage() {
                     <TextInput type="text" value={cp.personal.address} onChange={(v) => updateCareerPersonal({ address: v })} placeholder="Addis Ababa, Ethiopia" />
                   </Field>
                   <Field label="LinkedIn">
-                    <TextInput type="url" value={cp.personal.linkedIn} onChange={(v) => updateCareerPersonal({ linkedIn: v })} placeholder="linkedin.com/in/..." />
+                    <TextInput type="url" value={cp.personal.linkedIn} onChange={(v) => updateCareerPersonal({ linkedIn: v })} placeholder="linkedin.com/in/..." error={fieldErrors.linkedIn} onBlur={() => validateField("linkedIn", cp.personal.linkedIn, "linkedin")} />
                   </Field>
                   <Field label="GitHub">
-                    <TextInput type="url" value={cp.personal.github} onChange={(v) => updateCareerPersonal({ github: v })} placeholder="github.com/..." />
+                    <TextInput type="url" value={cp.personal.github} onChange={(v) => updateCareerPersonal({ github: v })} placeholder="github.com/..." error={fieldErrors.github} onBlur={() => validateField("github", cp.personal.github, "github")} />
                   </Field>
                   <Field label="Website">
-                    <TextInput type="url" value={cp.personal.website} onChange={(v) => updateCareerPersonal({ website: v })} placeholder="https://..." />
+                    <TextInput type="url" value={cp.personal.website} onChange={(v) => updateCareerPersonal({ website: v })} placeholder="https://..." error={fieldErrors.website} onBlur={() => validateField("website", cp.personal.website, "website")} />
                   </Field>
                 </div>
 
