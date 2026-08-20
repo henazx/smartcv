@@ -5,40 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCVStore } from "@/lib/store";
 import { analyzeJobMatch } from "@/lib/cvProfile";
-import type { CVData, JobMatchResult, CareerProfile } from "@/types";
-
-function careerProfileToCVData(cp: CareerProfile): CVData {
-  return {
-    personal: {
-      fullName: cp.personal.fullName,
-      headline: cp.personal.headline,
-      email: cp.personal.email,
-      phone: cp.personal.phone,
-      address: cp.personal.address,
-      summary: cp.personal.summary,
-      photoUrl: null,
-      photoSize: 60,
-      photoPosition: "center",
-      linkedIn: cp.personal.linkedIn,
-      github: cp.personal.github,
-      website: cp.personal.website,
-    },
-    experiences: cp.experiences,
-    education: cp.education,
-    skills: cp.skills,
-    languages: cp.languages,
-    certifications: cp.certifications,
-    projects: cp.projects,
-    awards: cp.awards,
-    publications: cp.publications,
-    references: [],
-    volunteer: cp.volunteer,
-    courses: cp.courses,
-    includeReferences: false,
-    showAvailableUponRequest: true,
-    activeSections: ["summary", "experience", "education", "skills"],
-  };
-}
+import { careerProfileToCVData } from "@/lib/cv/convert";
+import type { JobMatchResult, CareerProfile } from "@/types";
 
 interface GapItem {
   keyword: string;
@@ -110,7 +78,7 @@ function ScoreCircle({ score, size = 120 }: { score: number; size?: number }) {
 }
 
 export default function JobMatchPage() {
-  const { careerProfile, hydrateFromStorage, saveJobDescription, data, populateFromCareerProfile, setJobDescription, addApplication } = useCVStore();
+  const { careerProfile, hydrateFromStorage, saveJobDescription, data, createTailoredCV, loadVersionIntoEditor, addApplication } = useCVStore();
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
   const [jobInput, setJobInput] = useState("");
@@ -131,7 +99,7 @@ export default function JobMatchPage() {
   const hasCvData = data.personal.fullName || data.experiences.length > 0 || data.skills.length > 0;
 
   const runMatch = (jd: string) => {
-    const cvData = hasProfile ? careerProfileToCVData(careerProfile) : data;
+    const cvData = hasProfile ? careerProfileToCVData(careerProfile, data.activeSections) : data;
     const matchResult = analyzeJobMatch(cvData, jd);
     setResult(matchResult);
     setGaps(classifyGaps(matchResult, careerProfile));
@@ -448,8 +416,14 @@ export default function JobMatchPage() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => {
-                      if (hasProfile) populateFromCareerProfile();
-                      if (jobInput.trim()) setJobDescription(jobInput);
+                      if (hasProfile && jobInput.trim()) {
+                        const version = createTailoredCV(jobTitle || "Tailored CV", jobTitle, jobCompany, jobInput);
+                        if (version) {
+                          loadVersionIntoEditor(version.id);
+                          router.push("/export");
+                          return;
+                        }
+                      }
                       router.push("/build");
                     }}
                     className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl text-sm font-bold hover:from-gray-800 hover:to-gray-600 transition-all text-center"

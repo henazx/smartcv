@@ -6,39 +6,7 @@ import { templates } from "@/lib/templates";
 import { themes } from "@/lib/themes";
 import { computeProfile } from "@/lib/cvProfile";
 import { generateCV } from "@/lib/cv/generator";
-
-const defaultPersonal = {
-  fullName: "",
-  headline: "",
-  email: "",
-  phone: "",
-  address: "",
-  summary: "",
-  photoUrl: null,
-  photoSize: 60,
-  photoPosition: "center" as const,
-  linkedIn: "",
-  github: "",
-  website: "",
-};
-
-const defaultCVData: CVData = {
-  personal: { ...defaultPersonal },
-  experiences: [],
-  education: [],
-  skills: [],
-  languages: [],
-  certifications: [],
-  projects: [],
-  awards: [],
-  publications: [],
-  references: [],
-  volunteer: [],
-  courses: [],
-  includeReferences: false,
-  showAvailableUponRequest: true,
-  activeSections: ["summary", "experience", "education", "skills", "languages"] as SectionId[],
-};
+import { defaultPersonal, defaultCVData, normalizeCVData, normalizeCareerProfile, normalizeVersions, careerProfileToCVData, cvDataToCareerProfile } from "@/lib/cv/convert";
 
 const defaultProfile: CVProfile = {
   cvType: null, applicationGoal: null, targetJobTitle: "", targetIndustry: "",
@@ -72,36 +40,7 @@ const defaultCareerProfile: CareerProfile = {
 };
 
 function buildDataFromCareerProfile(cp: CareerProfile, activeSections?: SectionId[]): CVData {
-  return {
-    personal: {
-      fullName: cp.personal.fullName,
-      headline: cp.personal.headline,
-      email: cp.personal.email,
-      phone: cp.personal.phone,
-      address: cp.personal.address,
-      summary: cp.personal.summary,
-      photoUrl: cp.personal.photoUrl || null,
-      photoSize: cp.personal.photoSize || 60,
-      photoPosition: (cp.personal.photoPosition as "left" | "center" | "right") || "center",
-      linkedIn: cp.personal.linkedIn,
-      github: cp.personal.github,
-      website: cp.personal.website,
-    },
-    experiences: JSON.parse(JSON.stringify(cp.experiences)),
-    education: JSON.parse(JSON.stringify(cp.education)),
-    skills: JSON.parse(JSON.stringify(cp.skills)),
-    languages: JSON.parse(JSON.stringify(cp.languages)),
-    certifications: JSON.parse(JSON.stringify(cp.certifications)),
-    projects: JSON.parse(JSON.stringify(cp.projects)),
-    awards: JSON.parse(JSON.stringify(cp.awards)),
-    publications: JSON.parse(JSON.stringify(cp.publications)),
-    references: [],
-    volunteer: JSON.parse(JSON.stringify(cp.volunteer)),
-    courses: JSON.parse(JSON.stringify(cp.courses)),
-    includeReferences: false,
-    showAvailableUponRequest: true,
-    activeSections: activeSections || (["summary", "experience", "education", "skills"] as SectionId[]),
-  };
+  return careerProfileToCVData(cp, activeSections);
 }
 
 interface CVStore extends CVState {
@@ -234,17 +173,45 @@ function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
 
-// Debounced localStorage save — batches rapid mutations into a single write
+// ---------------------------------------------------------------------------
+// Persistence layer — debounced writes with an on-unload flush so every part
+// of the app (profile, cover letter, applications, versions) survives refresh.
+// ---------------------------------------------------------------------------
+
+const STORAGE_KEYS = {
+  data: "smartcv-data-v2",
+  careerProfile: "smartcv-career-profile",
+  versions: "smartcv-versions",
+  coverLetter: "smartcv-cover-letter",
+  applications: "smartcv-applications",
+} as const;
+
+function persistState(get: () => CVStore) {
+  try {
+    const { data, template, theme, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice, careerProfile, coverLetter, applications, versions } = get();
+    localStorage.setItem(STORAGE_KEYS.data, JSON.stringify({ data, template, theme, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice }));
+    localStorage.setItem(STORAGE_KEYS.careerProfile, JSON.stringify(careerProfile));
+    localStorage.setItem(STORAGE_KEYS.versions, JSON.stringify(versions));
+    if (coverLetter) localStorage.setItem(STORAGE_KEYS.coverLetter, JSON.stringify(coverLetter));
+    localStorage.setItem(STORAGE_KEYS.applications, JSON.stringify(applications));
+  } catch {}
+}
+
 let _saveTimer: ReturnType<typeof setTimeout> | null = null;
-function debouncedSave(get: () => CVStore) {
+function debouncedSave(get: () => CVStore, delay = 300) {
   if (_saveTimer) clearTimeout(_saveTimer);
   _saveTimer = setTimeout(() => {
-    try {
-      const { data, template, theme, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice, careerProfile } = get();
-      localStorage.setItem("smartcv-data-v2", JSON.stringify({ data, template, theme, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice }));
-      localStorage.setItem("smartcv-career-profile", JSON.stringify(careerProfile));
-    } catch {}
-  }, 300);
+    _saveTimer = null;
+    persistState(get);
+  }, delay);
+}
+
+function flushSave(get: () => CVStore) {
+  if (_saveTimer) {
+    clearTimeout(_saveTimer);
+    _saveTimer = null;
+    persistState(get);
+  }
 }
 
 const MAX_HISTORY = 50;
@@ -627,11 +594,12 @@ export const useCVStore = create<CVStore>((set, get) => ({
     const { versions } = get();
     const version = versions.find((v) => v.id === id);
     if (version) {
-      const restoredData = { ...defaultCVData, ...version.data, personal: { ...defaultPersonal, ...(version.data.personal || {}) } };
+      const restoredData = normalizeCVData(version.data);
       set({
         data: restoredData,
-        template: version.template,
-        theme: version.theme,
+        template: version.template || templates[0],
+        theme: version.theme || themes[0],
+        fontChoice: version.fontChoice || "helvetica",
         activeVersionId: id,
       });
       debouncedSave(get);
@@ -706,10 +674,11 @@ export const useCVStore = create<CVStore>((set, get) => ({
   },
 
   createTailoredCV: (name, targetRole, targetCompany, jobDescription) => {
+    const { careerProfile } = get();
     return get().createCVFromProfile(name, {
       targetRole,
       targetCompany,
-      targetIndustry: targetCompany,
+      targetIndustry: careerProfile.targetIndustries[0] || undefined,
       jobDescription,
       autoImproveBullets: true,
     });
@@ -724,6 +693,12 @@ export const useCVStore = create<CVStore>((set, get) => ({
 
   loadVersionIntoEditor: (id) => {
     get().loadVersion(id);
+    const { versions, careerProfile } = get();
+    const version = versions.find((v) => v.id === id);
+    if (version) {
+      const cp = cvDataToCareerProfile(normalizeCVData(version.data), careerProfile);
+      set({ careerProfile: cp });
+    }
   },
 
   exportCV: () => {
@@ -761,6 +736,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
       const applicationGoal = parsed.applicationGoal || null;
       const targetJobTitle = parsed.targetJobTitle || "";
       const targetIndustry = parsed.targetIndustry || "";
+      const existingCP = get().careerProfile;
       set({
         data: mergedData,
         template: parsed.template || templates[0],
@@ -771,6 +747,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
         targetJobTitle,
         targetIndustry,
         jobDescription: parsed.jobDescription || "",
+        careerProfile: cvDataToCareerProfile(normalizeCVData(mergedData), existingCP, { targetRole: targetJobTitle, targetIndustry }),
         profile: computeProfile(cvType, applicationGoal, targetJobTitle, targetIndustry, mergedData),
       });
       debouncedSave(get);
@@ -987,48 +964,16 @@ export const useCVStore = create<CVStore>((set, get) => ({
   }),
 
   importCareerFromCV: () => set((state) => {
-    const d = state.data;
-    const now = new Date().toISOString();
-    const cp: CareerProfile = {
-      id: state.careerProfile.id || generateId(),
-      createdAt: state.careerProfile.createdAt || now,
-      updatedAt: now,
-      personal: {
-        fullName: d.personal.fullName,
-        headline: d.personal.headline,
-        email: d.personal.email,
-        phone: d.personal.phone,
-        address: d.personal.address,
-        linkedIn: d.personal.linkedIn,
-        github: d.personal.github,
-        website: d.personal.website,
-        summary: d.personal.summary,
-        photoUrl: d.personal.photoUrl || null,
-        photoSize: d.personal.photoSize || 60,
-        photoPosition: (d.personal.photoPosition as "left" | "center" | "right") || "center",
-      },
-      education: JSON.parse(JSON.stringify(d.education)),
-      experiences: JSON.parse(JSON.stringify(d.experiences)),
-      skills: JSON.parse(JSON.stringify(d.skills)),
-      languages: JSON.parse(JSON.stringify(d.languages)),
-      certifications: JSON.parse(JSON.stringify(d.certifications)),
-      projects: JSON.parse(JSON.stringify(d.projects)),
-      awards: JSON.parse(JSON.stringify(d.awards)),
-      publications: JSON.parse(JSON.stringify(d.publications)),
-      volunteer: JSON.parse(JSON.stringify(d.volunteer)),
-      courses: JSON.parse(JSON.stringify(d.courses)),
-      careerInterests: state.careerProfile.careerInterests,
-      targetRoles: state.careerProfile.targetRoles.length > 0 ? state.careerProfile.targetRoles : (state.targetJobTitle ? [state.targetJobTitle] : []),
-      targetIndustries: state.careerProfile.targetIndustries.length > 0 ? state.careerProfile.targetIndustries : (state.targetIndustry ? [state.targetIndustry] : []),
-      careerGoals: state.careerProfile.careerGoals,
-      jobDescriptions: state.careerProfile.jobDescriptions,
-    };
+    const cp = cvDataToCareerProfile(state.data, state.careerProfile, {
+      targetRole: state.targetJobTitle,
+      targetIndustry: state.targetIndustry,
+    });
     return { careerProfile: cp };
   }),
 
   populateFromCareerProfile: () => set((state) => {
     const cp = state.careerProfile;
-    const mergedData: CVData = buildDataFromCareerProfile(cp);
+    const mergedData: CVData = buildDataFromCareerProfile(cp, state.data.activeSections);
     return {
       data: mergedData,
       targetJobTitle: cp.targetRoles[0] || state.targetJobTitle,
@@ -1119,22 +1064,27 @@ export const useCVStore = create<CVStore>((set, get) => ({
           profile: computeProfile(cvType, applicationGoal, targetJobTitle, targetIndustry, mergedData),
         });
       }
-      const versionsSaved = localStorage.getItem("smartcv-versions");
+      const versionsSaved = localStorage.getItem(STORAGE_KEYS.versions);
       if (versionsSaved) {
-        set({ versions: JSON.parse(versionsSaved) });
+        const parsedVersions = JSON.parse(versionsSaved);
+        set({ versions: normalizeVersions(parsedVersions) });
       }
-      const careerSaved = localStorage.getItem("smartcv-career-profile");
+      const careerSaved = localStorage.getItem(STORAGE_KEYS.careerProfile);
       if (careerSaved) {
         const parsedCP = JSON.parse(careerSaved);
-        set({ careerProfile: { ...defaultCareerProfile, ...parsedCP, personal: { ...defaultCareerProfile.personal, ...(parsedCP.personal || {}) } } });
+        set({ careerProfile: normalizeCareerProfile(parsedCP) });
       }
-      const coverLetterSaved = localStorage.getItem("smartcv-cover-letter");
+      const coverLetterSaved = localStorage.getItem(STORAGE_KEYS.coverLetter);
       if (coverLetterSaved) {
-        set({ coverLetter: JSON.parse(coverLetterSaved) });
+        const parsedCL = JSON.parse(coverLetterSaved);
+        if (parsedCL && typeof parsedCL === "object" && Array.isArray(parsedCL.paragraphs)) {
+          set({ coverLetter: parsedCL });
+        }
       }
-      const applicationsSaved = localStorage.getItem("smartcv-applications");
+      const applicationsSaved = localStorage.getItem(STORAGE_KEYS.applications);
       if (applicationsSaved) {
-        set({ applications: JSON.parse(applicationsSaved) });
+        const parsedApps = JSON.parse(applicationsSaved);
+        if (Array.isArray(parsedApps)) set({ applications: parsedApps });
       }
     } catch (e) {
       console.warn("Failed to load saved data, resetting to defaults:", e);
@@ -1142,13 +1092,7 @@ export const useCVStore = create<CVStore>((set, get) => ({
   },
 
   saveToStorage: () => {
-    try {
-      const { data, template, theme, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice, careerProfile, coverLetter, applications } = get();
-      localStorage.setItem("smartcv-data-v2", JSON.stringify({ data, template, theme, cvType, applicationGoal, targetJobTitle, targetIndustry, jobDescription, fontChoice }));
-      localStorage.setItem("smartcv-career-profile", JSON.stringify(careerProfile));
-      if (coverLetter) localStorage.setItem("smartcv-cover-letter", JSON.stringify(coverLetter));
-      localStorage.setItem("smartcv-applications", JSON.stringify(applications));
-    } catch {}
+    persistState(get);
   },
 
   resetAll: () => {
@@ -1185,3 +1129,46 @@ export const useCVStore = create<CVStore>((set, get) => ({
     });
   },
 }));
+
+// ---------------------------------------------------------------------------
+// Global auto-save + Career Twin -> data sync
+// ---------------------------------------------------------------------------
+// Any relevant state change is debounce-persisted to localStorage, and every
+// Career Twin change is mirrored into the derived CVData so the editor preview,
+// Job Match, Readiness, Review and Export all see the same canonical profile.
+
+if (typeof window !== "undefined") {
+  useCVStore.subscribe((state, prevState) => {
+    if (
+      state.data !== prevState.data ||
+      state.template !== prevState.template ||
+      state.theme !== prevState.theme ||
+      state.fontChoice !== prevState.fontChoice ||
+      state.cvType !== prevState.cvType ||
+      state.applicationGoal !== prevState.applicationGoal ||
+      state.targetJobTitle !== prevState.targetJobTitle ||
+      state.targetIndustry !== prevState.targetIndustry ||
+      state.jobDescription !== prevState.jobDescription ||
+      state.careerProfile !== prevState.careerProfile ||
+      state.coverLetter !== prevState.coverLetter ||
+      state.applications !== prevState.applications ||
+      state.versions !== prevState.versions ||
+      state.activeVersionId !== prevState.activeVersionId
+    ) {
+      debouncedSave(() => useCVStore.getState());
+    }
+
+    if (state.careerProfile !== prevState.careerProfile) {
+      const data = careerProfileToCVData(state.careerProfile, state.data.activeSections);
+      useCVStore.setState((s) => ({
+        data,
+        targetJobTitle: state.careerProfile.targetRoles[0] || s.targetJobTitle,
+        targetIndustry: state.careerProfile.targetIndustries[0] || s.targetIndustry,
+      }));
+    }
+  });
+
+  const flushOnUnload = () => flushSave(() => useCVStore.getState());
+  window.addEventListener("pagehide", flushOnUnload);
+  window.addEventListener("beforeunload", flushOnUnload);
+}

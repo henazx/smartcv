@@ -69,7 +69,7 @@ const FIELD_PATTERNS: Record<Exclude<FieldType, "text" | "date">, RegExp> = {
   number: /[^0-9.]/g,
 };
 
-function TextInput({ value, onChange, placeholder, multiline, type = "text", error }: { value: string; onChange: (v: string) => void; placeholder?: string; multiline?: boolean; type?: FieldType; error?: string }) {
+function TextInput({ value, onChange, placeholder, multiline, type = "text", error, onBlur }: { value: string; onChange: (v: string) => void; placeholder?: string; multiline?: boolean; type?: FieldType; error?: string; onBlur?: () => void }) {
   const handleChange = (raw: string) => {
     if (type === "number") {
       let v = raw.replace(FIELD_PATTERNS.number, "");
@@ -85,7 +85,7 @@ function TextInput({ value, onChange, placeholder, multiline, type = "text", err
   const base = "w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:border-gray-400";
   const borderCls = error ? " border-red-400" : " border-gray-200";
   if (multiline) {
-    return <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={`${base} resize-none ${borderCls}`} rows={3} />;
+    return <textarea value={value} onChange={(e) => onChange(e.target.value)} onBlur={onBlur} placeholder={placeholder} className={`${base} resize-none ${borderCls}`} rows={3} />;
   }
   return (
     <div>
@@ -94,6 +94,7 @@ function TextInput({ value, onChange, placeholder, multiline, type = "text", err
         inputMode={type === "phone" ? "numeric" : type === "number" ? "decimal" : undefined}
         value={value}
         onChange={(e) => handleChange(e.target.value)}
+        onBlur={onBlur}
         onKeyDown={type === "phone" ? (e) => { const allowed = ["Backspace", "Delete", "Tab", "Escape", "Enter", "Home", "End", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]; const isNum = e.key >= "0" && e.key <= "9"; if (!isNum && !allowed.includes(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) e.preventDefault(); } : undefined}
         placeholder={placeholder}
         className={`${base} ${borderCls}`}
@@ -136,7 +137,7 @@ export default function CareerTwinPage() {
     addCareerCertification, updateCareerCertification, removeCareerCertification,
     addCareerProject, updateCareerProject, removeCareerProject,
     setCareerInterests, setCareerTargetRoles, setCareerTargetIndustries, setCareerGoals,
-    importCareerFromCV, populateFromCareerProfile, syncCareerProfileToData, removeJobDescription, data,
+    importCareerFromCV, removeJobDescription, data,
     template, setTemplate, theme, setTheme, fontChoice,
     layoutOverride, manualLayout,
     resetAll, reorderSections, addSection, removeSection, setActiveSections, setFontChoice,
@@ -160,6 +161,7 @@ export default function CareerTwinPage() {
   const [generating, setGenerating] = useState(false);
   const [generateStage, setGenerateStage] = useState("");
   const [showVersions, setShowVersions] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     hydrateFromStorage();
@@ -211,22 +213,9 @@ export default function CareerTwinPage() {
     };
   }, [cp, activeSections]);
 
-  // Also sync to CV data store so Export/Job Match can use it
-  const populatedRef = useRef(false);
-  useEffect(() => {
-    if (hasData && hydrated && !populatedRef.current) {
-      populateFromCareerProfile();
-      populatedRef.current = true;
-    }
-  }, [hasData, hydrated, populateFromCareerProfile]);
-
-  // Keep store data in sync with Career Twin profile so Export/Job Match
-  // always reflect the latest edits (persisted to localStorage)
-  useEffect(() => {
-    if (hydrated) {
-      syncCareerProfileToData();
-    }
-  }, [cp, hydrated, syncCareerProfileToData]);
+  // The store subscribes to Career Twin changes and mirrors them into CV data
+  // automatically (src/lib/store.ts), so Export/Job Match/Readiness always see
+  // the latest canonical profile. No per-page sync effect needed here.
 
   // Keep CV store activeSections in sync with Career Twin section manager
   const lastSectionSync = useRef<string | null>(null);
@@ -285,6 +274,31 @@ export default function CareerTwinPage() {
     reader.readAsDataURL(file);
   };
 
+  const validateField = (key: string, value: string, kind: "email" | "phone" | "gpa") => {
+    if (!value.trim()) return;
+    if (kind === "email") {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+        setFieldErrors((p) => ({ ...p, [key]: "Enter a valid email address" }));
+      } else {
+        setFieldErrors((p) => { const n = { ...p }; delete n[key]; return n; });
+      }
+    } else if (kind === "phone") {
+      const digits = value.replace(/\D/g, "");
+      if (digits.length < 7) {
+        setFieldErrors((p) => ({ ...p, [key]: "Phone number looks too short" }));
+      } else {
+        setFieldErrors((p) => { const n = { ...p }; delete n[key]; return n; });
+      }
+    } else if (kind === "gpa") {
+      const gpa = parseFloat(value);
+      if (!Number.isNaN(gpa) && (gpa < 0 || gpa > 4.3)) {
+        setFieldErrors((p) => ({ ...p, [key]: "GPA should be between 0 and 4.3" }));
+      } else {
+        setFieldErrors((p) => { const n = { ...p }; delete n[key]; return n; });
+      }
+    }
+  };
+
   const handleGenerateCV = () => {
     const targetRole = cp.targetRoles[0]?.trim() || cp.personal.headline.trim();
     setGenerating(true);
@@ -295,6 +309,7 @@ export default function CareerTwinPage() {
         targetIndustry: cp.targetIndustries[0],
         autoImproveBullets: true,
         maxBulletsPerRole: 5,
+        sections: activeSections,
       });
       setGenerating(false);
       if (version) {
@@ -667,10 +682,10 @@ export default function CareerTwinPage() {
                     <TextInput type="text" value={cp.personal.headline} onChange={(v) => updateCareerPersonal({ headline: v })} placeholder="Software Engineer" />
                   </Field>
                   <Field label="Email">
-                    <TextInput type="email" value={cp.personal.email} onChange={(v) => updateCareerPersonal({ email: v })} placeholder="abebe@email.com" />
+                    <TextInput type="email" value={cp.personal.email} onChange={(v) => updateCareerPersonal({ email: v })} placeholder="abebe@email.com" error={fieldErrors.email} onBlur={() => validateField("email", cp.personal.email, "email")} />
                   </Field>
                   <Field label="Phone">
-                    <TextInput type="phone" value={cp.personal.phone} onChange={(v) => updateCareerPersonal({ phone: v })} placeholder="+251 91 234 5678" />
+                    <TextInput type="phone" value={cp.personal.phone} onChange={(v) => updateCareerPersonal({ phone: v })} placeholder="+251 91 234 5678" error={fieldErrors.phone} onBlur={() => validateField("phone", cp.personal.phone, "phone")} />
                   </Field>
                   <Field label="Location">
                     <TextInput type="text" value={cp.personal.address} onChange={(v) => updateCareerPersonal({ address: v })} placeholder="Addis Ababa, Ethiopia" />
@@ -835,7 +850,7 @@ export default function CareerTwinPage() {
                           <TextInput value={edu.field} onChange={(v) => updateCareerEducation(edu.id, { field: v })} placeholder="Computer Science" />
                         </Field>
                         <Field label="GPA">
-                          <TextInput type="number" value={edu.gpa} onChange={(v) => updateCareerEducation(edu.id, { gpa: v })} placeholder="3.8" />
+                          <TextInput type="number" value={edu.gpa} onChange={(v) => updateCareerEducation(edu.id, { gpa: v })} placeholder="3.8" error={fieldErrors[`gpa-${edu.id}`]} onBlur={() => validateField(`gpa-${edu.id}`, edu.gpa, "gpa")} />
                         </Field>
                         <Field label="Start Date">
                           <TextInput type="date" value={edu.startDate} onChange={(v) => updateCareerEducation(edu.id, { startDate: v })} placeholder="2016-09" />
